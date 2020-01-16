@@ -27,7 +27,7 @@
 
     <groupId>org.wildfly.openssl</groupId>
     <artifactId>wildfly-openssl-parent</artifactId>
-    <version>1.0.10.Final-SNAPSHOT</version>
+    <version>1.1.0.Final-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -38,12 +38,6 @@
         <openssl.path></openssl.path>
         <cmake.generator>Unix Makefiles</cmake.generator>
         <make.exe>make</make.exe>
-
-        <!-- Test properties -->
-        <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
-        <org.wildfly.openssl.test.host>localhost</org.wildfly.openssl.test.host>
-        <org.wildfly.openssl.test.port>7676</org.wildfly.openssl.test.port>
-        <org.wildfly.openssl.test.secondary.port>7686</org.wildfly.openssl.test.secondary.port>
     </properties>
 
     <licenses>
@@ -84,10 +78,6 @@
                     <name>!parent-release</name>
                 </property>
             </activation>
-            <modules>
-                <module>java</module>
-                <module>combined</module>
-            </modules>
         </profile>
         <profile>
             <id>parent-release</id>
