@@ -17,6 +17,7 @@
 
 package org.wildfly.openssl;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -39,6 +40,7 @@ import org.junit.internal.matchers.StringContains;
  */
 public class TestAllMethodsImplemented extends AbstractOpenSSLTest  {
 
+    @Ignore
     @Test
     public void testAllMethodsImplemented() throws IOException {
 
