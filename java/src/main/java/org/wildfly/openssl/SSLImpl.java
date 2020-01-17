@@ -875,4 +875,12 @@ public class SSLImpl extends SSL {
     protected boolean setSessionIdContext(long ctx, byte[] sidCtx) {
         return SSLImpl.setSessionIdContext0(ctx, sidCtx);
     }
+
+    /* Return OpenSSL version number */
+    static native long versionNumber0();
+
+    @Override
+    protected long versionNumber() {
+        return SSLImpl.versionNumber0();
+    }
 }

@@ -1203,4 +1203,10 @@ public abstract class SSL {
             return versionedLibrary.versionPart.compareTo(versionPart);
         }
     }
+
+    /**
+     * Return OpenSSL version number.
+     * @return the version number
+     */
+    protected abstract long versionNumber();
 }

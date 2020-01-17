@@ -79,6 +79,7 @@ WF_OPENSSL(void, freeBIO)(JNIEnv *e, jobject o, jlong bio /* BIO * */);
 WF_OPENSSL(jstring, getErrorString)(JNIEnv *e, jobject o, jlong number);
 WF_OPENSSL(jstring, getCipherForSSL)(JNIEnv *e, jobject o, jlong ssl /* SSL * */);
 WF_OPENSSL(jstring, getVersion)(JNIEnv *e, jobject o, jlong ssl /* SSL * */);
+WF_OPENSSL(jlong, versionNumber)(JNIEnv *e);
 WF_OPENSSL(jobjectArray, getPeerCertChain)(JNIEnv *e, jobject o, jlong ssl /* SSL * */);
 WF_OPENSSL(jint , shutdownSSL)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(jbyteArray, getPeerCertificate)(JNIEnv *e, jobject o, jlong ssl /* SSL * */);
@@ -1571,6 +1572,12 @@ WF_OPENSSL(jstring, version)(JNIEnv *e)
 #pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
     char * version = ssl_methods.SSLeay_version(0);
     return (*e)->NewStringUTF(e, version);
+}
+
+WF_OPENSSL(jlong, versionNumber)(JNIEnv *e)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+    return ssl_methods.SSLeay();
 }
 
 /* sets up diffie hellman params using the apps/dh2048.pem file from openssl */

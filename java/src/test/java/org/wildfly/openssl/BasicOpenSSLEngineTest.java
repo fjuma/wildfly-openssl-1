@@ -99,6 +99,11 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
         }
     }
 
+    @Test
+    public void testVersion() {
+        System.out.println("**** VERSION IS **** " + SSL.getInstance().versionNumber());
+    }
+
     private static String generateMessage(int repetitions) {
         final StringBuilder builder = new StringBuilder(repetitions * MESSAGE.length());
         for (int i = 0; i < repetitions; ++i) {
