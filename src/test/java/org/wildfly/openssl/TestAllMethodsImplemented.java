@@ -17,7 +17,6 @@
 
 package org.wildfly.openssl;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -40,13 +39,12 @@ import org.junit.internal.matchers.StringContains;
  */
 public class TestAllMethodsImplemented extends AbstractOpenSSLTest  {
 
-    @Ignore
     @Test
     public void testAllMethodsImplemented() throws IOException {
 
         Set<String> implemented = new HashSet<>();
         Pattern pattern = Pattern.compile("WF_OPENSSL\\([^,]*,([^\\)]*)");
-        File path = new File("../libwfssl" + File.separator + "src");
+        File path = new File("target/libwfssl" + File.separator + "src");
         for(String i : path.list()) {
             String file = read(new File(path, i));
             Matcher matcher = pattern.matcher(file);
