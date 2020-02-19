@@ -66,7 +66,8 @@ public final class OpenSSLEngine extends SSLEngine {
             SSL.SSL_PROTO_SSLv3,
             SSL.SSL_PROTO_TLSv1,
             SSL.SSL_PROTO_TLSv1_1,
-            SSL.SSL_PROTO_TLSv1_2
+            SSL.SSL_PROTO_TLSv1_2,
+            SSL.SSL_PROTO_TLSv1_3
     };
     private static final Set<String> SUPPORTED_PROTOCOLS_SET = new HashSet<>(Arrays.asList(SUPPORTED_PROTOCOLS));
 
@@ -748,6 +749,7 @@ public final class OpenSSLEngine extends SSLEngine {
         userSetEnabledCipherSuites = cipherSuites;
         Runnable task = () -> {
             final StringBuilder buf = new StringBuilder();
+            final StringBuilder bufTls13 = new StringBuilder();
             for (String cipherSuite : cipherSuites) {
                 if (cipherSuite == null) {
                     break;
@@ -768,19 +770,35 @@ public final class OpenSSLEngine extends SSLEngine {
                     LOG.fine("Unsupported cypher suites " + missing + " available " + availbile);
                 }
 
-                buf.append(cipherSuite);
-                buf.append(':');
+                if (CipherSuiteConverter.isTLSv13CipherSuite(converted)) {
+                    bufTls13.append(cipherSuite);
+                    bufTls13.append(':');
+                } else {
+                    buf.append(cipherSuite);
+                    buf.append(':');
+                }
             }
 
-            if (buf.length() == 0) {
+            if (buf.length() == 0 && bufTls13.length() == 0) {
                 throw new IllegalArgumentException(MESSAGES.emptyCipherSuiteList());
             }
-            buf.setLength(buf.length() - 1);
-            final String cipherSuiteSpec = buf.toString();
-            try {
-                SSL.getInstance().setCipherSuites(ssl, cipherSuiteSpec);
-            } catch (Exception e) {
-                throw new IllegalStateException(MESSAGES.failedCipherSuite(cipherSuiteSpec), e);
+            if (buf.length() > 0) {
+                buf.setLength(buf.length() - 1);
+                final String cipherSuiteSpec = buf.toString();
+                try {
+                    SSL.getInstance().setCipherSuites(ssl, cipherSuiteSpec);
+                } catch (Exception e) {
+                    throw new IllegalStateException(MESSAGES.failedCipherSuite(cipherSuiteSpec), e);
+                }
+            }
+            if (bufTls13.length() > 0) {
+                bufTls13.setLength(bufTls13.length() - 1);
+                final String cipherSuiteSpec = bufTls13.toString();
+                try {
+                    SSL.getInstance().setCipherSuitesTLS13(ssl, cipherSuiteSpec);
+                } catch (Exception e) {
+                    throw new IllegalStateException(MESSAGES.failedCipherSuite(cipherSuiteSpec), e);
+                }
             }
         };
         if(ssl == 0) {
@@ -818,6 +836,9 @@ public final class OpenSSLEngine extends SSLEngine {
         if ((opts & SSL.SSL_OP_NO_TLSv1_2) == 0) {
             enabled.add(SSL.SSL_PROTO_TLSv1_2);
         }
+        if ((opts & SSL.SSL_OP_NO_TLSv1_3) == 0) {
+            enabled.add(SSL.SSL_PROTO_TLSv1_3);
+        }
         if ((opts & SSL.SSL_OP_NO_SSLv2) == 0) {
             enabled.add(SSL.SSL_PROTO_SSLv2);
         }
@@ -845,6 +866,7 @@ public final class OpenSSLEngine extends SSLEngine {
             boolean tlsv1 = false;
             boolean tlsv1_1 = false;
             boolean tlsv1_2 = false;
+            boolean tlsv1_3 = false;
             for (String p : protocols) {
                 if (!SUPPORTED_PROTOCOLS_SET.contains(p)) {
                     throw new IllegalArgumentException(MESSAGES.unsupportedProtocol(p));
@@ -859,6 +881,8 @@ public final class OpenSSLEngine extends SSLEngine {
                     tlsv1_1 = true;
                 } else if (p.equals(SSL.SSL_PROTO_TLSv1_2)) {
                     tlsv1_2 = true;
+                } else if (p.equals(SSL.SSL_PROTO_TLSv1_3)) {
+                    tlsv1_3 = true;
                 }
             }
             // Enable all and then disable what we not want
@@ -878,6 +902,9 @@ public final class OpenSSLEngine extends SSLEngine {
             }
             if (!tlsv1_2) {
                 SSL.getInstance().setOptions(ssl, SSL.SSL_OP_NO_TLSv1_2);
+            }
+            if (!tlsv1_3) {
+                SSL.getInstance().setOptions(ssl, SSL.SSL_OP_NO_TLSv1_3);
             }
         };
         if(ssl == 0) {
@@ -957,8 +984,8 @@ public final class OpenSSLEngine extends SSLEngine {
                     @Override
                     public String select(String[] data) {
                         String version = SSL.getInstance().getVersion(ssl);
-                        if((protocolSelector == null && applicationProtocols == null) || version == null || !version.equals("TLSv1.2")) {
-                            //only offer ALPN on TLS 1.2, try and force http/1.1 if it is offered, otherwise fail the connection
+                        if((protocolSelector == null && applicationProtocols == null) || version == null || !version.equals("TLSv1.2") || !version.equals("TLSv1.3")) {
+                            //only offer ALPN on TLS 1.2+, try and force http/1.1 if it is offered, otherwise fail the connection
                             //it seems wrong to hard code protocols in the SSL impl, but openssl does not really allow alpn to be enabled
                             //on a per engine basis
                             for(String i : data) {

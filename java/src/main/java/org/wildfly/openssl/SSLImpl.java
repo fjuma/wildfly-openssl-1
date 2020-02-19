@@ -428,6 +428,11 @@ public class SSLImpl extends SSL {
         return setCipherSuites0(ssl, ciphers);
     }
 
+    @Override
+    protected boolean setCipherSuitesTLS13(long ssl, String ciphers) throws Exception {
+        return setCipherSuitesTLS130(ssl, ciphers);
+    }
+
     static native boolean setServerNameIndication0(long ssl, String hostName);
 
     @Override
@@ -472,6 +477,16 @@ public class SSLImpl extends SSL {
      * @param ciphers an SSL cipher specification
      */
     static native boolean setCipherSuites0(long ssl, String ciphers) throws Exception;
+
+    /**
+     * Sets the cipher suites available for negotiation in the SSL handshake.
+     * <br />
+     * This is a simple colon (":") separated list of TLSv1.3 ciphersuite names in order of preference.
+     *
+     * @param ssl     the SSL instance (SSL *)
+     * @param ciphers an SSL cipher specification
+     */
+    static native boolean setCipherSuitesTLS130(long ssl, String ciphers) throws Exception;
 
 
     /**
@@ -589,6 +604,11 @@ public class SSLImpl extends SSL {
     }
 
     @Override
+    protected boolean setCipherSuiteTLS13(long ctx, String ciphers) throws Exception {
+        return setCipherSuiteTLS130(ctx, ciphers);
+    }
+
+    @Override
     protected boolean setCARevocation(long ctx, String file, String path) throws Exception {
         return setCARevocation0(ctx, file, path);
     }
@@ -614,6 +634,16 @@ public class SSLImpl extends SSL {
      * @param ciphers An SSL cipher specification.
      */
     static native boolean setCipherSuite0(long ctx, String ciphers) throws Exception;
+
+    /**
+     * Sets the cipher suites available for negotiation in the SSL handshake.
+     * <br />
+     * This is a simple colon (":") separated list of TLSv1.3 ciphersuite names in order of preference.
+     *
+     * @param ctx     Server or Client context to use.
+     * @param ciphers an SSL cipher specification
+     */
+    static native boolean setCipherSuiteTLS130(long ctx, String ciphers) throws Exception;
 
     /**
      * Set File of concatenated PEM-encoded CA CRLs or
