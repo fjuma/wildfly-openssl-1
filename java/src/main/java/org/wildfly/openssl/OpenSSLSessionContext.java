@@ -43,7 +43,8 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
 
     @Override
     public SSLSession getSession(byte[] bytes) {
-        return sessions.get(new Key(bytes));
+        //return sessions.get(new Key(bytes));
+        return null;
     }
 
     OpenSSlSession getOpenSSlSession(final byte[] sessionId) {

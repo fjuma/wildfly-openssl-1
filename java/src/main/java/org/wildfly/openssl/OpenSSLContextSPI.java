@@ -71,6 +71,15 @@ public abstract class OpenSSLContextSPI extends SSLContextSpi {
 
     private static volatile String[] allAvailableCiphers;
 
+    private static final String javaSpecVersion = System.getProperty("java.specification.version");
+
+    static int getJavaSpecVersion() {
+        if ("1.8".equals(javaSpecVersion)) return 8;
+        return Integer.parseInt(javaSpecVersion);
+    }
+
+    private static final String TLS13_CIPHERS = "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_AES_128_CCM_SHA256:TLS_AES_128_CCM_8_SHA256";
+
     protected final long ctx;
     final int supportedCiphers;
 
@@ -94,16 +103,25 @@ public abstract class OpenSSLContextSPI extends SSLContextSpi {
                 if(allAvailableCiphers == null) {
 
                     final Set<String> availableCipherSuites = new LinkedHashSet<>(128);
+                    boolean tls13Supported = false;
                     try {
                         final long sslCtx = SSL.getInstance().makeSSLContext(SSL.SSL_PROTOCOL_ALL, SSL.SSL_MODE_SERVER);
                         try {
                             SSL.getInstance().setSSLContextOptions(sslCtx, SSL.SSL_OP_ALL);
+                            if (getJavaSpecVersion() >= 11) {
+                                try {
+                                    SSL.getInstance().setCipherSuiteTLS13(sslCtx, TLS13_CIPHERS);
+                                    tls13Supported = true;
+                                } catch (Exception ignored) {
+                                    tls13Supported = false;
+                                }
+                            }
                             SSL.getInstance().setCipherSuite(sslCtx, "ALL");
                             final long ssl = SSL.getInstance().newSSL(sslCtx, true);
                             try {
                                 for (String c : SSL.getInstance().getCiphers(ssl)) {
                                     // Filter out bad input.
-                                    if (c == null || c.length() == 0 || availableCipherSuites.contains(c)) {
+                                    if (c == null || c.length() == 0 || availableCipherSuites.contains(c) || (! tls13Supported && CipherSuiteConverter.isTLSv13CipherSuite(c))) {
                                         continue;
                                     }
                                     availableCipherSuites.add(CipherSuiteConverter.toJava(c, "TLS"));
@@ -482,6 +500,13 @@ public abstract class OpenSSLContextSPI extends SSLContextSpi {
 
         public OpenSSLTLS_1_2_ContextSpi() throws SSLException {
             super(SSL.SSL_PROTOCOL_TLSV1_2);
+        }
+    }
+
+    public static final class OpenSSLTLS_1_3_ContextSpi extends OpenSSLContextSPI {
+
+        public OpenSSLTLS_1_3_ContextSpi() throws SSLException {
+            super(SSL.SSL_PROTOCOL_TLSV1_3);
         }
     }
 }

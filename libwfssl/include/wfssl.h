@@ -280,6 +280,7 @@ typedef  unsigned __int64   uint64_t;
 #define SSL_PROTOCOL_TLSV1      (1<<2)
 #define SSL_PROTOCOL_TLSV1_1    (1<<3)
 #define SSL_PROTOCOL_TLSV1_2    (1<<4)
+#define SSL_PROTOCOL_TLSV1_3    (1<<5)
 
 #define SSL_MODE_CLIENT         (0)
 #define SSL_MODE_SERVER         (1)
@@ -528,6 +529,7 @@ typedef struct {
     void (*SSL_CTX_set_alpn_select_cb)(SSL_CTX *ctx, int (*cb) (SSL *ssl, const unsigned char **out, unsigned char *outlen, const unsigned char *in, unsigned int inlen, void *arg), void *arg);
     void (*SSL_CTX_set_cert_verify_callback)(SSL_CTX *ctx, int (*cb) (X509_STORE_CTX *, void *), void *arg);
     int (*SSL_CTX_set_cipher_list)(SSL_CTX *, const char *str);
+    int (*SSL_CTX_set_ciphersuites)(SSL_CTX *, const char *str);
     int (*SSL_CTX_set_default_verify_paths)(SSL_CTX *ctx);
     int (*SSL_CTX_set_session_id_context)(SSL_CTX *ctx, const unsigned char *sid_ctx, unsigned int sid_ctx_len);
     long (*SSL_CTX_set_timeout)(SSL_CTX *ctx, long t);
@@ -565,6 +567,7 @@ typedef struct {
     void (*SSL_set_accept_state)(SSL *s);
     void (*SSL_set_bio)(SSL *s, BIO *rbio, BIO *wbio);
     int (*SSL_set_cipher_list)(SSL *s, const char *str);
+    int (*SSL_set_ciphersuites)(SSL *s, const char *str);
     void (*SSL_set_connect_state)(SSL *s);
     void (*SSL_set_verify)(SSL *s, int mode, int (*callback) (int ok, X509_STORE_CTX *ctx));
     void (*SSL_set_verify_result)(SSL *ssl, long v);

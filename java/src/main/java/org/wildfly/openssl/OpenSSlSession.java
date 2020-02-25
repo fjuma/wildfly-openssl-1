@@ -297,6 +297,19 @@ class OpenSSlSession implements SSLSession {
         initProtocol(ssl);
     }
 
+    void initialised(long ssl) {
+        this.creationTime = System.currentTimeMillis();
+        this.sessionPointer = SSL.getInstance().getSession(ssl);
+        initSessionId(ssl);
+        initPeerCertChain(ssl);
+        initCipherSuite(ssl);
+        initProtocol(ssl);
+    }
+
+    private void initSessionId(long ssl) {
+        sessionId = SSL.getInstance().getSessionId(ssl);
+    }
+
     private void initProtocol(long ssl) {
         protocol = SSL.getInstance().getVersion(ssl);
     }
