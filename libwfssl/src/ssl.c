@@ -47,6 +47,7 @@ WF_OPENSSL(jint, initialize) (JNIEnv *e, jobject o, jstring libCryptoPath, jstri
 WF_OPENSSL(jlong, makeSSLContext)(JNIEnv *e, jobject o, jint protocol, jint mode);
 WF_OPENSSL(jobjectArray, getCiphers)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(jboolean, setCipherSuites)(JNIEnv *e, jobject o, jlong ssl, jstring ciphers);
+WF_OPENSSL(jboolean, setCipherSuitesTLS13)(JNIEnv *e, jobject o, jlong ssl, jstring ciphers);
 WF_OPENSSL(jboolean, setServerNameIndication)(JNIEnv *e, jobject o, jlong ssl, jstring ciphers);
 WF_OPENSSL(jint, freeSSLContext)(JNIEnv *e, jobject o, jlong ctx);
 WF_OPENSSL(void, setSSLContextOptions)(JNIEnv *e, jobject o, jlong ctx, jint opt);
@@ -54,6 +55,7 @@ WF_OPENSSL(void, clearSSLContextOptions)(JNIEnv *e, jobject o, jlong ctx, jint o
 WF_OPENSSL(void, setSSLOptions)(JNIEnv *e, jobject o, jlong ssl, jint opt);
 WF_OPENSSL(void, clearSSLOptions)(JNIEnv *e, jobject o, jlong ssl, jint opt);
 WF_OPENSSL(jboolean, setCipherSuite)(JNIEnv *e, jobject o, jlong ctx, jstring ciphers);
+WF_OPENSSL(jboolean, setCipherSuiteTLS13)(JNIEnv *e, jobject o, jlong ctx, jstring ciphers);
 WF_OPENSSL(jboolean, setCARevocation)(JNIEnv *e, jobject o, jlong ctx, jstring file, jstring path);
 WF_OPENSSL(jboolean, setCertificate)(JNIEnv *e, jobject o, jlong ctx, jbyteArray javaCert, jobjectArray intermediateCerts, jbyteArray javaKey, jint idx);
 WF_OPENSSL(void, setCertVerifyCallback)(JNIEnv *e, jobject o, jlong ctx, jobject verifier);
@@ -322,6 +324,8 @@ int load_openssl_dynamic_methods(JNIEnv *e, const char * libCryptoPath, const ch
     GET_SSL_SYMBOL(SSL_get0_alpn_selected);
     REQUIRE_SSL_SYMBOL(SSL_CTX_set_cert_verify_callback);
     REQUIRE_SSL_SYMBOL(SSL_CTX_set_cipher_list);
+    GET_SSL_SYMBOL(SSL_set_ciphersuites);
+    GET_SSL_SYMBOL(SSL_CTX_set_ciphersuites);
     REQUIRE_SSL_SYMBOL(SSL_CTX_set_default_verify_paths);
     REQUIRE_SSL_SYMBOL(SSL_CTX_set_session_id_context);
     REQUIRE_SSL_SYMBOL(SSL_CTX_set_timeout);
@@ -694,15 +698,45 @@ WF_OPENSSL(jboolean, setCipherSuites)(JNIEnv *e, jobject o, jlong ssl, jstring c
     TCN_ALLOC_CSTRING(ciphers);
 
     if (ssl_ == NULL) {
+        TCN_FREE_CSTRING(ciphers);
         throwIllegalStateException(e, "ssl is null");
         return JNI_FALSE;
     }
 
     UNREFERENCED(o);
     if (!J2S(ciphers)) {
+        TCN_FREE_CSTRING(ciphers);
         return JNI_FALSE;
     }
     if (!ssl_methods.SSL_set_cipher_list(ssl_, J2S(ciphers))) {
+        char err[2048];
+        generate_openssl_stack_error(e, err, sizeof(err));
+        throwIllegalStateException(e, err);
+        rv = JNI_FALSE;
+    }
+    TCN_FREE_CSTRING(ciphers);
+    return rv;
+}
+
+WF_OPENSSL(jboolean, setCipherSuitesTLS13)(JNIEnv *e, jobject o, jlong ssl, jstring ciphers)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+    jboolean rv = JNI_TRUE;
+    SSL *ssl_ = J2P(ssl, SSL *);
+    TCN_ALLOC_CSTRING(ciphers);
+
+    if (ssl_ == NULL) {
+        TCN_FREE_CSTRING(ciphers);
+        throwIllegalStateException(e, "ssl is null");
+        return JNI_FALSE;
+    }
+
+    UNREFERENCED(o);
+    if (!J2S(ciphers)) {
+        TCN_FREE_CSTRING(ciphers);
+        return JNI_FALSE;
+    }
+    if (!ssl_methods.SSL_set_ciphersuites(ssl_, J2S(ciphers))) {
         char err[2048];
         generate_openssl_stack_error(e, err, sizeof(err));
         throwIllegalStateException(e, err);
@@ -841,6 +875,30 @@ WF_OPENSSL(jboolean, setCipherSuite)(JNIEnv *e, jobject o, jlong ctx, jstring ci
 #ifndef HAVE_EXPORT_CIPHERS
     free(buf);
 #endif
+    TCN_FREE_CSTRING(ciphers);
+    return rv;
+}
+
+WF_OPENSSL(jboolean, setCipherSuiteTLS13)(JNIEnv *e, jobject o, jlong ctx, jstring ciphers)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+    tcn_ssl_ctxt_t *c = J2P(ctx, tcn_ssl_ctxt_t *);
+    TCN_ALLOC_CSTRING(ciphers);
+    jboolean rv = JNI_TRUE;
+
+    UNREFERENCED(o);
+    TCN_ASSERT(ctx != 0);
+    if (!J2S(ciphers)) {
+        TCN_FREE_CSTRING(ciphers);
+        return JNI_FALSE;
+    }
+
+    if (!ssl_methods.SSL_CTX_set_ciphersuites(c->ctx, J2S(ciphers))) {
+        char err[2048];
+        generate_openssl_stack_error(e, err, sizeof(err));
+        tcn_Throw(e, "Unable to configure permitted SSL ciphers (%s)", err);
+        rv = JNI_FALSE;
+    }
     TCN_FREE_CSTRING(ciphers);
     return rv;
 }
