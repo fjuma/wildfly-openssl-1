@@ -54,7 +54,9 @@ public class ClientCertTest extends AbstractOpenSSLTest {
                 int read = socket.getInputStream().read(data);
 
                 Assert.assertEquals(MESSAGE, new String(data, 0, read));
-                Assert.assertArrayEquals(socket.getSession().getId(), sessionID.get());
+                if (! isTls13Supported()) {
+                    Assert.assertArrayEquals(socket.getSession().getId(), sessionID.get());
+                }
             }
 
             serverSocket.close();

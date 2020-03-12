@@ -55,16 +55,37 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
 
     @Test
     public void testJsse() throws Exception {
-        testSessionId(SSLTestUtils.createSSLContext("TLSv1"));
+        final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" }; // testing session id doesn't make sense for TLSv1.3 or higher
+        for (String provider : providers) {
+            testSessionId(SSLTestUtils.createSSLContext(provider), "openssl." + provider);
+        }
     }
 
     @Test
     public void testOpenSsl() throws Exception {
-        testSessionId(SSLTestUtils.createSSLContext("openssl.TLSv1"));
+        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2"}; // testing session id doesn't make sense for TLSv1.3 or higher
+        for (String provider : providers) {
+            testSessionId(SSLTestUtils.createSSLContext(provider), provider);
+        }
     }
 
     @Test
-    public void testSessionTimeout() throws Exception {
+    public void testSessionTimeoutJsse() throws Exception {
+        final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
+        for (String provider : providers) {
+            testSessionTimeout(provider, "openssl." + provider);
+        }
+    }
+
+    @Test
+    public void testSessionTimeoutOpenSsl() throws Exception {
+        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2" };
+        for (String provider : providers) {
+            testSessionTimeout(provider, provider);
+        }
+    }
+
+    private void testSessionTimeout(String serverProvider, String clientProvider) throws Exception {
         final int port1 = SSLTestUtils.PORT;
         final int port2 = SSLTestUtils.SECONDARY_PORT;
 
@@ -73,10 +94,10 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
                 ServerSocket serverSocket2 = SSLTestUtils.createServerSocket(port2)
         ) {
 
-            final Thread acceptThread1 = startServer(serverSocket1);
-            final Thread acceptThread2 = startServer(serverSocket2);
+            final Thread acceptThread1 = startServer(serverSocket1, serverProvider);
+            final Thread acceptThread2 = startServer(serverSocket2, serverProvider);
 
-            SSLContext clientContext = SSLTestUtils.createClientSSLContext("openssl.TLSv1");
+            SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
             final SSLSessionContext clientSession = clientContext.getClientSessionContext();
             byte[] host1SessionId = connectAndWrite(clientContext, port1);
             byte[] host2SessionId = connectAndWrite(clientContext, port2);
@@ -99,14 +120,29 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
     }
 
     @Test
-    public void testSessionInvalidation() throws Exception {
+    public void testSessionInvalidationJsse() throws Exception {
+        final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
+        for (String provider : providers) {
+            testSessionInvalidation(provider, "openssl." + provider);
+        }
+    }
+
+    @Test
+    public void testSessionInvalidationOpenSsl() throws Exception {
+        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2" };
+        for (String provider : providers) {
+            testSessionInvalidation(provider, provider);
+        }
+    }
+
+    private void testSessionInvalidation(String serverProvider, String clientProvider) throws Exception {
         final int port = SSLTestUtils.PORT;
 
         try (ServerSocket serverSocket1 = SSLTestUtils.createServerSocket(port)) {
 
-            final Thread acceptThread1 = startServer(serverSocket1);
+            final Thread acceptThread1 = startServer(serverSocket1, serverProvider);
             final FutureSessionId future = new FutureSessionId();
-            SSLContext clientContext = SSLTestUtils.createClientSSLContext("openssl.TLSv1");
+            SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
             try (SSLSocket socket = (SSLSocket) clientContext.getSocketFactory().createSocket()) {
                 socket.connect(new InetSocketAddress(SSLTestUtils.HOST, port));
                 socket.addHandshakeCompletedListener(new FutureHandshakeCompletedListener(future));
@@ -115,7 +151,9 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
                 socket.getOutputStream().flush();
             }
             byte[] invalided = future.get();
+            Assert.assertNotNull(invalided);
             byte[] newSession = connectAndWrite(clientContext, port);
+            Assert.assertNotNull(newSession);
 
             Assert.assertFalse(Arrays.equals(invalided, newSession));
 
@@ -125,7 +163,23 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
     }
 
     @Test
-    public void testSessionSize() throws Exception {
+    public void testSessionSizeJsse() throws Exception {
+        final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
+        for (String provider : providers) {
+            testSessionSize(provider, "openssl." + provider);
+        }
+    }
+
+    @Test
+    public void testSessionSizeOpenSsl() throws Exception {
+        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2"};
+        for (String provider : providers) {
+            testSessionSize(provider, provider);
+        }
+    }
+
+
+    private void testSessionSize(String serverProvider, String clientProvider) throws Exception {
         final int port1 = SSLTestUtils.PORT;
         final int port2 = SSLTestUtils.SECONDARY_PORT;
 
@@ -134,9 +188,9 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
                 ServerSocket serverSocket2 = SSLTestUtils.createServerSocket(port2)
         ) {
 
-            final Thread acceptThread1 = startServer(serverSocket1);
-            final Thread acceptThread2 = startServer(serverSocket2);
-            SSLContext clientContext = SSLTestUtils.createClientSSLContext("openssl.TLSv1");
+            final Thread acceptThread1 = startServer(serverSocket1, serverProvider);
+            final Thread acceptThread2 = startServer(serverSocket2, serverProvider);
+            SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
 
             final SSLSessionContext clientSession = clientContext.getClientSessionContext();
 
@@ -183,13 +237,28 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
      * @throws Exception
      */
     @Test
-    public void testClientSessionInvalidationMultiThreadAccess() throws Exception {
+    public void testClientSessionInvalidationMultiThreadAccessJsse() throws Exception {
+        final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
+        for (String provider : providers) {
+            testClientSessionInvalidationMultiThreadAccess(provider, "openssl." + provider);
+        }
+    }
+
+    @Test
+    public void testClientSessionInvalidationMultiThreadAccessOpenSsl() throws Exception {
+        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2"};
+        for (String provider : providers) {
+            testClientSessionInvalidationMultiThreadAccess(provider, provider);
+        }
+    }
+
+    private void testClientSessionInvalidationMultiThreadAccess(String serverProvider, String clientProvider) throws Exception {
         final int port = SSLTestUtils.PORT;
         final int numThreads = 10;
         final ExecutorService executor = Executors.newFixedThreadPool(numThreads);
         try (ServerSocket serverSocket = SSLTestUtils.createServerSocket(port)) {
-            final Thread acceptThread = startServer(serverSocket);
-            final SSLContext clientContext = SSLTestUtils.createClientSSLContext("openssl.TLSv1.2");
+            final Thread acceptThread = startServer(serverSocket, serverProvider);
+            final SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
             final List<Future<Void>> taskResults = new ArrayList<>();
             for (int i = 0; i < numThreads; i++) {
                 taskResults.add(executor.submit(new SocketWriter(clientContext, SSLTestUtils.HOST, port)));
@@ -205,18 +274,26 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         }
     }
 
-    private void testSessionId(final SSLContext sslContext) throws IOException, InterruptedException {
+    private void testSessionId(final SSLContext sslContext, final String provider) throws IOException, InterruptedException {
         final int iterations = 10;
         final Collection<SSLSocket> toClose = new ArrayList<>();
 
         try (ServerSocket serverSocket = SSLTestUtils.createServerSocket()) {
 
-            final Thread acceptThread = new Thread(new EchoRunnable(serverSocket, sslContext, new AtomicReference<>()));
+            EchoRunnable echo = new EchoRunnable(serverSocket, sslContext, new AtomicReference<>(), (engine -> {
+                try {
+                    engine.setEnabledProtocols(new String[]{ "TLSv1", "TLSv1.1", "TLSv1.2"});
+                    return engine;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+            final Thread acceptThread = new Thread(echo);
             acceptThread.start();
 
             byte[] sessionID;
             // Create a connection to get a session ID, all other session id's should match
-            SSLContext clientContext = SSLTestUtils.createClientSSLContext("openssl.TLSv1");
+            SSLContext clientContext = SSLTestUtils.createClientSSLContext(provider);
             try (SSLSocket socket = (SSLSocket) clientContext.getSocketFactory().createSocket()) {
                 socket.connect(SSLTestUtils.createSocketAddress());
                 socket.startHandshake();
@@ -229,7 +306,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
             for (int i = 0; i < iterations; i++) {
                 final SSLSocket socket = (SSLSocket) clientContext.getSocketFactory().createSocket();
                 socket.connect(SSLTestUtils.createSocketAddress());
-                socket.addHandshakeCompletedListener(new AssertingHandshakeCompletedListener(latch, sessionID));
+                socket.addHandshakeCompletedListener(new AssertingHandshakeCompletedListener(latch, sessionID, getExpectedProtocolFromProvider(provider)));
                 socket.startHandshake();
                 toClose.add(socket);
             }
@@ -263,21 +340,33 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
     private static class AssertingHandshakeCompletedListener implements HandshakeCompletedListener {
         private final CountDownLatch latch;
         private final byte[] expectedSessionId;
+        private final String expectedProtocol;
 
-        private AssertingHandshakeCompletedListener(final CountDownLatch latch, final byte[] expectedSessionId) {
+        private AssertingHandshakeCompletedListener(final CountDownLatch latch, final byte[] expectedSessionId, final String expectedProtocol) {
             this.latch = latch;
             this.expectedSessionId = expectedSessionId;
+            this.expectedProtocol = expectedProtocol;
         }
 
         @Override
         public void handshakeCompleted(final HandshakeCompletedEvent event) {
             latch.countDown();
             Assert.assertArrayEquals(expectedSessionId, event.getSession().getId());
+            Assert.assertFalse(CipherSuiteConverter.isTLSv13CipherSuite(event.getCipherSuite()));
+            Assert.assertEquals(expectedProtocol, event.getSession().getProtocol());
         }
     }
 
-    private Thread startServer(final ServerSocket serverSocket) throws IOException {
-        final Thread acceptThread = new Thread(new EchoRunnable(serverSocket, SSLTestUtils.createSSLContext("TLSv1"), new AtomicReference<>()));
+    private Thread startServer(final ServerSocket serverSocket, final String serverProvider) throws IOException {
+        EchoRunnable echo = new EchoRunnable(serverSocket, SSLTestUtils.createSSLContext(serverProvider), new AtomicReference<>(), (engine -> {
+            try {
+                engine.setEnabledProtocols(new String[]{ "TLSv1", "TLSv1.1", "TLSv1.2" });
+                return engine;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }));
+        final Thread acceptThread = new Thread(echo);
         acceptThread.start();
         return acceptThread;
     }
@@ -352,6 +441,14 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
                 throw new RuntimeException(e);
             }
             return null;
+        }
+    }
+
+    private String getExpectedProtocolFromProvider(String provider) {
+        if (provider.startsWith("openssl.")) {
+            return provider.substring(provider.indexOf(".") + 1);
+        } else {
+            return provider;
         }
     }
 }

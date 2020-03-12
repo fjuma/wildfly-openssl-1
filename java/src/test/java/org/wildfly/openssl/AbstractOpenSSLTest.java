@@ -17,6 +17,8 @@
 
 package org.wildfly.openssl;
 
+import static org.wildfly.openssl.OpenSSLEngine.isOpenSSL111OrHigher;
+
 import org.junit.BeforeClass;
 
 /**
@@ -25,6 +27,17 @@ import org.junit.BeforeClass;
 public class AbstractOpenSSLTest {
 
     private static boolean first = true;
+
+    private static final String javaSpecVersion = System.getProperty("java.specification.version");
+
+    static int getJavaSpecVersion() {
+        if ("1.8".equals(javaSpecVersion)) return 8;
+        return Integer.parseInt(javaSpecVersion);
+    }
+
+    static boolean isTls13Supported() {
+        return getJavaSpecVersion() >= 11 && isOpenSSL111OrHigher();
+    }
 
     @BeforeClass
     public static void setup() {

@@ -94,4 +94,5 @@ public class BasicOpenSSLSocketDSATest extends AbstractOpenSSLTest {
             acceptThread.join();
         }
     }
+
 }
