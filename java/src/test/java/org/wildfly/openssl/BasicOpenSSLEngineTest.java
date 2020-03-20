@@ -18,16 +18,23 @@
 package org.wildfly.openssl;
 
 import static org.wildfly.openssl.SSL.SSL_PROTO_SSLv2Hello;
+import static org.wildfly.openssl.SSLTestUtils.HOST;
+import static org.wildfly.openssl.SSLTestUtils.PORT;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -379,6 +386,43 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             }
         }
     }
+
+    @Test
+    public void testTwoWay() throws Exception {
+        final String[] protocols = new String[] { "TLSv1.1" };//"TLSv1", "TLSv1.1", "TLSv1.2" }; //"TLSv1.2", "TLSv1.3" };
+        for (String protocol : protocols) {
+            final SSLContext serverContext = SSLTestUtils.createSSLContext("openssl." + protocol);
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            Future<SSLSocket> socketFuture = executorService.submit(() -> {
+                try {
+                    SSLContext clientContext = SSLTestUtils.createClientSSLContext("openssl." + protocol);
+                    SSLSocket sslSocket = (SSLSocket) clientContext.getSocketFactory().createSocket(HOST, PORT);
+                    sslSocket.getSession();
+                    return sslSocket;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            SSLServerSocket sslServerSocket = (SSLServerSocket) serverContext.getServerSocketFactory().createServerSocket(PORT, 10, InetAddress.getByName(HOST));
+            SSLSocket serverSocket = (SSLSocket) sslServerSocket.accept();
+            SSLSession serverSession = serverSocket.getSession();
+            SSLSocket clientSocket = socketFuture.get();
+            SSLSession clientSession = clientSocket.getSession();
+
+            try {
+                Assert.assertEquals(protocol, clientSession.getProtocol());
+                Assert.assertEquals(protocol, serverSession.getProtocol());
+                Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(clientSession.getCipherSuite()));
+                Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(serverSession.getCipherSuite()));
+            } finally {
+                serverSocket.close();
+                clientSocket.close();
+                sslServerSocket.close();
+            }
+        }
+    }
+
 
     private static String generateMessage(int repetitions) {
         final StringBuilder builder = new StringBuilder(repetitions * MESSAGE.length());

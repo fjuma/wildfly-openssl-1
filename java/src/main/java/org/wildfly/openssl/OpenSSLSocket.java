@@ -190,7 +190,16 @@ public class OpenSSLSocket extends SSLSocket {
 
     @Override
     public SSLSession getSession() {
-        return sslEngine.getSession();
+        if (sslEngine.isHandshakeFinished() || sslEngine.isOutboundDone() || sslEngine.isInboundDone()) {
+            return sslEngine.getSession();
+        } else {
+            try {
+                startHandshake();
+            } catch (IOException e) {
+                // LOG
+            }
+            return sslEngine.getSession();
+        }
     }
 
     @Override
