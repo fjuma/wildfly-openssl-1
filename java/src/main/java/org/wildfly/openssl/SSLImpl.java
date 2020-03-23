@@ -921,18 +921,6 @@ public class SSLImpl extends SSL {
         SSLImpl.setMinProtoVersion0(ssl, version);
     }
 
-    static native void setMinProtoVersionContext0(long ctx, int version);
-
-    protected void setMinProtoVersionContext(long ctx, int version) {
-        SSLImpl.setMinProtoVersionContext0(ctx, version);
-    }
-
-    static native void setMaxProtoVersionContext0(long ctx, int version);
-
-    protected void setMaxProtoVersionContext(long ctx, int version) {
-        SSLImpl.setMaxProtoVersionContext0(ctx, version);
-    }
-
     static native void setMaxProtoVersion0(long ssl, int version);
 
     protected void setMaxProtoVersion(long ssl, int version) {

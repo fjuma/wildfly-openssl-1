@@ -92,8 +92,6 @@ WF_OPENSSL(void, setMinProtoVersion)(JNIEnv *e, jobject o, jlong ssl, jint versi
 WF_OPENSSL(void, setMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl, jint version);
 WF_OPENSSL(jint, getMinProtoVersion)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(jint, getMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl);
-WF_OPENSSL(void, setMinProtoVersionContext)(JNIEnv *e, jobject o, jlong ctx, jint version);
-WF_OPENSSL(void, setMaxProtoVersionContext)(JNIEnv *e, jobject o, jlong ctx, jint version);
 void init_app_data_idx(void);
 void SSL_set_app_data1(SSL *ssl, tcn_ssl_conn_t *arg);
 void SSL_set_app_data2(SSL *ssl, tcn_ssl_ctxt_t *arg);
@@ -1668,28 +1666,6 @@ WF_OPENSSL(void, setMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl, jint versi
 
     UNREFERENCED_STDARGS;
     ssl_methods.SSL_ctrl(c, SSL_CTRL_SET_MAX_PROTO_VERSION, (version), NULL);
-}
-
-WF_OPENSSL(void, setMinProtoVersionContext)(JNIEnv *e, jobject o, jlong ctx, jint version)
-{
-#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
-    tcn_ssl_ctxt_t *c = J2P(ctx, tcn_ssl_ctxt_t *);
-
-    UNREFERENCED_STDARGS;
-    TCN_ASSERT(ctx != 0);
-
-    ssl_methods.SSL_CTX_ctrl(c->ctx, SSL_CTRL_SET_MIN_PROTO_VERSION, (version), NULL);
-}
-
-WF_OPENSSL(void, setMaxProtoVersionContext)(JNIEnv *e, jobject o, jlong ctx, jint version)
-{
-#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
-    tcn_ssl_ctxt_t *c = J2P(ctx, tcn_ssl_ctxt_t *);
-
-    UNREFERENCED_STDARGS;
-    TCN_ASSERT(ctx != 0);
-
-    ssl_methods.SSL_CTX_ctrl(c->ctx, SSL_CTRL_SET_MAX_PROTO_VERSION, (version), NULL);
 }
 
 WF_OPENSSL(jint, getMinProtoVersion)(JNIEnv *e, jobject o, jlong ssl)
