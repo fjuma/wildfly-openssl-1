@@ -1240,6 +1240,25 @@ public abstract class SSL {
     protected abstract void setMaxProtoVersion(long ssl, int version);
 
     /**
+     * Set the minimum supported protocol version. This will call {@code SSL_CTX_set_min_proto_version}.
+     * See https://www.openssl.org/docs/manmaster/man3/SSL_set_min_proto_version.html.
+     *
+     * @param ctx Server or Client context to use.
+     * @param version the minimum supported protocol version
+     */
+    protected abstract void setMinProtoVersionContext(long ctx, int version);
+
+    /**
+     * Set the maximum supported protocol version. This will call {@code SSL_CTX_set_max_proto_version}.
+     * See https://www.openssl.org/docs/manmaster/man3/SSL_set_max_proto_version.html.
+     *
+     * @param ctx Server or Client context to use.
+     * @param version the maximum supported protocol version
+     */
+    protected abstract void setMaxProtoVersionContext(long ctx, int version);
+
+
+    /**
      * Get the minimum supported protocol version. This will call {@code SSL_get_min_proto_version}.
      * See https://www.openssl.org/docs/manmaster/man3/SSL_get_min_proto_version.html.
      *

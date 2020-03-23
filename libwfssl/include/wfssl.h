@@ -197,6 +197,7 @@ typedef  unsigned __int64   uint64_t;
 #define SSL_OP_NO_SSLv2                                 0x01000000L
 #define SSL_OP_NO_SSLv3                                 0x02000000L
 #define SSL_OP_NO_TLSv1                                 0x04000000L
+#define SSL_OP_NO_TLSv1_3                               0x20000000L
 #define SSL_OP_NO_TLSv1_2                               0x08000000L
 #define SSL_OP_NO_TLSv1_1                               0x10000000L
 #define SSL_OP_SINGLE_ECDH_USE                          0x00080000L

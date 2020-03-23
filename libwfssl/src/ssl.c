@@ -24,6 +24,8 @@
 #endif
 
 #define WF_OPENSSL_MIN_VERSION 0x010001000L /* minimum required version of OpenSSL to work with */
+#define WF_OPENSSL_VERSION_1_1_0 0x10100000L
+#define WF_OPENSSL_VERSION_1_1_0_F 0x1010006fL
 
 static int ssl_initialized = 0;
 static jclass byteArrayClass, stringClass;
@@ -90,6 +92,8 @@ WF_OPENSSL(void, setMinProtoVersion)(JNIEnv *e, jobject o, jlong ssl, jint versi
 WF_OPENSSL(void, setMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl, jint version);
 WF_OPENSSL(jint, getMinProtoVersion)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(jint, getMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl);
+WF_OPENSSL(void, setMinProtoVersionContext)(JNIEnv *e, jobject o, jlong ctx, jint version);
+WF_OPENSSL(void, setMaxProtoVersionContext)(JNIEnv *e, jobject o, jlong ctx, jint version);
 void init_app_data_idx(void);
 void SSL_set_app_data1(SSL *ssl, tcn_ssl_conn_t *arg);
 void SSL_set_app_data2(SSL *ssl, tcn_ssl_ctxt_t *arg);
@@ -575,82 +579,84 @@ WF_OPENSSL(jlong, makeSSLContext)(JNIEnv *e, jobject o, jint protocol, jint mode
     c->mode     = mode;
     c->ctx      = ctx;
     set_CTX_options_internal((c->ctx), SSL_OP_ALL);
-    /* always disable SSLv2, as per RFC 6176 */
-    set_CTX_options_internal((c->ctx), SSL_OP_NO_SSLv2);
-    if (!(protocol & SSL_PROTOCOL_SSLV3))
-        set_CTX_options_internal((c->ctx), SSL_OP_NO_SSLv3);
-    if (!(protocol & SSL_PROTOCOL_TLSV1))
-        set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1);
-    if(ssl_methods.TLSv1_1_server_method != NULL) { /* we use the presence of the method to test if it is supported */
-        if (!(protocol & SSL_PROTOCOL_TLSV1_1))
-            set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1_1);
-    }
-    if(ssl_methods.TLSv1_2_server_method != NULL) {
-        if (!(protocol & SSL_PROTOCOL_TLSV1_2))
-            set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1_2);
-    }
+        /* always disable SSLv2, as per RFC 6176 */
+        set_CTX_options_internal((c->ctx), SSL_OP_NO_SSLv2);
+        if (!(protocol & SSL_PROTOCOL_SSLV3))
+            set_CTX_options_internal((c->ctx), SSL_OP_NO_SSLv3);
+        if (!(protocol & SSL_PROTOCOL_TLSV1))
+            set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1);
+        if(ssl_methods.TLSv1_1_server_method != NULL) { /* we use the presence of the method to test if it is supported */
+            if (!(protocol & SSL_PROTOCOL_TLSV1_1))
+                set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1_1);
+        }
+        if(ssl_methods.TLSv1_2_server_method != NULL) {
+            if (!(protocol & SSL_PROTOCOL_TLSV1_2))
+                set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1_2);
+        }
+        if (!(protocol & SSL_PROTOCOL_TLSV1_3)) {
+            set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1_3);
+        }
 
-    /*
-     * Configure additional context ingredients
-     */
-    set_CTX_options_internal((c->ctx), SSL_OP_SINGLE_DH_USE);
-    set_CTX_options_internal((c->ctx), SSL_OP_SINGLE_ECDH_USE);
-/* TODO: what do we do with these defines? */
-#ifdef SSL_OP_NO_COMPRESSION
-    /* Disable SSL compression to be safe */
-    set_CTX_options_internal((c->ctx), SSL_OP_NO_COMPRESSION);
-#endif
+        /*
+         * Configure additional context ingredients
+         */
+        set_CTX_options_internal((c->ctx), SSL_OP_SINGLE_DH_USE);
+        set_CTX_options_internal((c->ctx), SSL_OP_SINGLE_ECDH_USE);
+    /* TODO: what do we do with these defines? */
+    #ifdef SSL_OP_NO_COMPRESSION
+        /* Disable SSL compression to be safe */
+        set_CTX_options_internal((c->ctx), SSL_OP_NO_COMPRESSION);
+    #endif
 
 
-    /** To get back the tomcat wrapper from CTX */
-    SSL_CTX_set_app_data1(ctx, c);
+        /** To get back the tomcat wrapper from CTX */
+        SSL_CTX_set_app_data1(ctx, c);
 
-#ifdef SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION
-    /*
-     * Disallow a session from being resumed during a renegotiation,
-     * so that an acceptable cipher suite can be negotiated.
-     */
-    set_CTX_options_internal((c->ctx), SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
-#endif
-#ifdef SSL_MODE_RELEASE_BUFFERS
-    /* Release idle buffers to the SSL_CTX free list */
-    ssl_methods.SSL_CTX_ctrl((c->ctx),SSL_CTRL_MODE,(SSL_MODE_RELEASE_BUFFERS),NULL);
-#endif
-    setup_session_context(e, c);
-    crypto_methods.EVP_Digest((const unsigned char *)SSL_DEFAULT_VHOST_NAME,
-               (unsigned long)((sizeof SSL_DEFAULT_VHOST_NAME) - 1),
-               &(c->context_id[0]), NULL, crypto_methods.EVP_sha1(), NULL);
+    #ifdef SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION
+        /*
+         * Disallow a session from being resumed during a renegotiation,
+         * so that an acceptable cipher suite can be negotiated.
+         */
+        set_CTX_options_internal((c->ctx), SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+    #endif
+    #ifdef SSL_MODE_RELEASE_BUFFERS
+        /* Release idle buffers to the SSL_CTX free list */
+        ssl_methods.SSL_CTX_ctrl((c->ctx),SSL_CTRL_MODE,(SSL_MODE_RELEASE_BUFFERS),NULL);
+    #endif
+        setup_session_context(e, c);
+        crypto_methods.EVP_Digest((const unsigned char *)SSL_DEFAULT_VHOST_NAME,
+                   (unsigned long)((sizeof SSL_DEFAULT_VHOST_NAME) - 1),
+                   &(c->context_id[0]), NULL, crypto_methods.EVP_sha1(), NULL);
 
-    /* Set default Certificate verification level
-     * and depth for the Client Authentication
-     */
-    c->verify_depth  = 1;
-    c->verify_mode   = SSL_CVERIFY_UNSET;
-    c->shutdown_type = SSL_SHUTDOWN_TYPE_UNSET;
+        /* Set default Certificate verification level
+         * and depth for the Client Authentication
+         */
+        c->verify_depth  = 1;
+        c->verify_mode   = SSL_CVERIFY_UNSET;
+        c->shutdown_type = SSL_SHUTDOWN_TYPE_UNSET;
 
-    /* Cache Java side SNI callback if not already cached */
-    if (ssl_context_class == NULL) {
-        ssl_context_class = (*e)->NewGlobalRef(e, o);
-        sni_java_callback = (*e)->GetStaticMethodID(e, ssl_context_class,
-                                                    "sniCallBack", "(JLjava/lang/String;)J");
-    }
+        /* Cache Java side SNI callback if not already cached */
+        if (ssl_context_class == NULL) {
+            ssl_context_class = (*e)->NewGlobalRef(e, o);
+            sni_java_callback = (*e)->GetStaticMethodID(e, ssl_context_class,
+                                                        "sniCallBack", "(JLjava/lang/String;)J");
+        }
 
-    ssl_methods.SSL_CTX_ctrl(c->ctx,SSL_CTRL_SET_ECDH_AUTO,1,NULL);
+        ssl_methods.SSL_CTX_ctrl(c->ctx,SSL_CTRL_SET_ECDH_AUTO,1,NULL);
 
-    /* Set up OpenSSL call back if SNI is provided by the client */
-    ssl_methods.SSL_CTX_callback_ctrl(c->ctx,SSL_CTRL_SET_TLSEXT_SERVERNAME_CB,(void (*)(void))ssl_callback_ServerNameIndication);
-    ssl_methods.SSL_CTX_ctrl(c->ctx,SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG,0, (void *)c);
+        /* Set up OpenSSL call back if SNI is provided by the client */
+        ssl_methods.SSL_CTX_callback_ctrl(c->ctx,SSL_CTRL_SET_TLSEXT_SERVERNAME_CB,(void (*)(void))ssl_callback_ServerNameIndication);
+        ssl_methods.SSL_CTX_ctrl(c->ctx,SSL_CTRL_SET_TLSEXT_SERVERNAME_ARG,0, (void *)c);
 
-    /* Cache the byte[].class for performance reasons */
-    clazz = (*e)->FindClass(e, "[B");
-    byteArrayClass = (jclass) (*e)->NewGlobalRef(e, clazz);
+        /* Cache the byte[].class for performance reasons */
+        clazz = (*e)->FindClass(e, "[B");
+        byteArrayClass = (jclass) (*e)->NewGlobalRef(e, clazz);
 
-    setupDH(e, ctx);
-    return P2J(c);
-init_failed:
-    return 0;
+        setupDH(e, ctx);
+        return P2J(c);
+    init_failed:
+        return 0;
 }
-
 
 WF_OPENSSL(jobjectArray, getCiphers)(JNIEnv *e, jobject o, jlong ssl)
 {
@@ -1662,6 +1668,28 @@ WF_OPENSSL(void, setMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl, jint versi
 
     UNREFERENCED_STDARGS;
     ssl_methods.SSL_ctrl(c, SSL_CTRL_SET_MAX_PROTO_VERSION, (version), NULL);
+}
+
+WF_OPENSSL(void, setMinProtoVersionContext)(JNIEnv *e, jobject o, jlong ctx, jint version)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+    tcn_ssl_ctxt_t *c = J2P(ctx, tcn_ssl_ctxt_t *);
+
+    UNREFERENCED_STDARGS;
+    TCN_ASSERT(ctx != 0);
+
+    ssl_methods.SSL_CTX_ctrl(c->ctx, SSL_CTRL_SET_MIN_PROTO_VERSION, (version), NULL);
+}
+
+WF_OPENSSL(void, setMaxProtoVersionContext)(JNIEnv *e, jobject o, jlong ctx, jint version)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+    tcn_ssl_ctxt_t *c = J2P(ctx, tcn_ssl_ctxt_t *);
+
+    UNREFERENCED_STDARGS;
+    TCN_ASSERT(ctx != 0);
+
+    ssl_methods.SSL_CTX_ctrl(c->ctx, SSL_CTRL_SET_MAX_PROTO_VERSION, (version), NULL);
 }
 
 WF_OPENSSL(jint, getMinProtoVersion)(JNIEnv *e, jobject o, jlong ssl)

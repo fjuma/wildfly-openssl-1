@@ -389,7 +389,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
 
     @Test
     public void testTwoWay() throws Exception {
-        final String[] protocols = new String[] { "TLSv1.1" };//"TLSv1", "TLSv1.1", "TLSv1.2" }; //"TLSv1.2", "TLSv1.3" };
+        final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
         for (String protocol : protocols) {
             final SSLContext serverContext = SSLTestUtils.createSSLContext("openssl." + protocol);
             ExecutorService executorService = Executors.newSingleThreadExecutor();
