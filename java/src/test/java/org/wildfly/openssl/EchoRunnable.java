@@ -40,11 +40,11 @@ class EchoRunnable implements Runnable {
     private final AtomicReference<String> cipherSuite;
 
     EchoRunnable(ServerSocket serverSocket, SSLContext sslContext, AtomicReference<byte[]> sessionID) {
-        this(serverSocket, sslContext, sessionID, null, null, null);
+        this(serverSocket, sslContext, sessionID, null, new AtomicReference<>(), new AtomicReference<>());
     }
 
     EchoRunnable(ServerSocket serverSocket, SSLContext sslContext, AtomicReference<byte[]> sessionID, EngineCustomizer engineCustomizer) {
-        this(serverSocket, sslContext, sessionID, engineCustomizer, null, null);
+        this(serverSocket, sslContext, sessionID, engineCustomizer, new AtomicReference<>(), new AtomicReference<>());
     }
 
     EchoRunnable(ServerSocket serverSocket, SSLContext sslContext, AtomicReference<byte[]> sessionID, EngineCustomizer engineCustomizer, AtomicReference<String> protocol,
@@ -120,9 +120,9 @@ class EchoRunnable implements Runnable {
                         }
                         if(engine.getSession() != null) {
                             sessionID.set(engine.getSession().getId());
+                            protocol.set(engine.getSession().getProtocol());
+                            cipherSuite.set(engine.getSession().getCipherSuite());
                         }
-                        protocol.set(engine.getSession().getProtocol());
-                        cipherSuite.set(engine.getSession().getCipherSuite());
                         while (true) {
                             in.clear();
                             out.clear();

@@ -45,7 +45,7 @@ public class ALPNTest extends AbstractOpenSSLTest {
             }
             try (ServerSocket serverSocket = SSLTestUtils.createServerSocket()) {
                 final AtomicReference<byte[]> sessionID = new AtomicReference<>();
-                final SSLContext sslContext = SSLTestUtils.createSSLContext("openssl.TLSv1.2");
+                final SSLContext sslContext = SSLTestUtils.createSSLContext("openssl." + protocol);
                 final AtomicReference<OpenSSLEngine> engineAtomicReference = new AtomicReference<>();
                 Thread acceptThread = new Thread(new EchoRunnable(serverSocket, sslContext, sessionID, (engine -> {
                     OpenSSLEngine openSSLEngine = (OpenSSLEngine) engine;
@@ -55,7 +55,7 @@ public class ALPNTest extends AbstractOpenSSLTest {
                 })));
                 acceptThread.start();
 
-                final SSLContext clientSslContext = SSLTestUtils.createClientSSLContext("openssl.TLSv1.2");
+                final SSLContext clientSslContext = SSLTestUtils.createClientSSLContext("openssl." + protocol);
                 final OpenSSLSocket socket = (OpenSSLSocket) clientSslContext.getSocketFactory().createSocket();
                 socket.setApplicationProtocols("h2/13", "h2", "http");
                 socket.connect(SSLTestUtils.createSocketAddress());
@@ -66,12 +66,8 @@ public class ALPNTest extends AbstractOpenSSLTest {
                 Assert.assertEquals(MESSAGE, new String(data, 0, read));
                 Assert.assertEquals("server side", "h2", engineAtomicReference.get().getSelectedApplicationProtocol());
                 Assert.assertEquals("client side", "h2", socket.getSelectedApplicationProtocol());
-                if (! isTls13Supported()) {
-                    Assert.assertEquals("TLSv1.2", socket.getSession().getProtocol());
-                } else {
-                    Assert.assertEquals("TLSv1.3", socket.getSession().getProtocol());
-                }
-                Assert.assertEquals(isTls13Supported(), CipherSuiteConverter.isTLSv13CipherSuite(socket.getSession().getCipherSuite()));
+                Assert.assertEquals(protocol, socket.getSession().getProtocol());
+                Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(socket.getSession().getCipherSuite()));
                 serverSocket.close();
                 acceptThread.join();
             }
@@ -88,8 +84,8 @@ public class ALPNTest extends AbstractOpenSSLTest {
             }
             try (ServerSocket serverSocket = SSLTestUtils.createServerSocket()) {
                 final AtomicReference<byte[]> sessionID = new AtomicReference<>();
-                final SSLContext sslContext = SSLTestUtils.createSSLContext("openssl.TLSv1.2");
-                final SSLContext clientSslContext = SSLTestUtils.createClientSSLContext("openssl.TLSv1.2");
+                final SSLContext sslContext = SSLTestUtils.createSSLContext("openssl." + protocol);
+                final SSLContext clientSslContext = SSLTestUtils.createClientSSLContext("openssl." + protocol);
                 final AtomicReference<OpenSSLEngine> engineAtomicReference = new AtomicReference<>();
                 Thread acceptThread = new Thread(new EchoRunnable(serverSocket, sslContext, sessionID, (engine -> {
                     OpenSSLEngine openSSLEngine = (OpenSSLEngine) engine;
@@ -107,12 +103,8 @@ public class ALPNTest extends AbstractOpenSSLTest {
                 Assert.assertEquals(MESSAGE, new String(data, 0, read));
                 Assert.assertNull("server side", engineAtomicReference.get().getSelectedApplicationProtocol());
                 Assert.assertNull("client side", socket.getSelectedApplicationProtocol());
-                if (! isTls13Supported()) {
-                    Assert.assertEquals("TLSv1.2", socket.getSession().getProtocol());
-                } else {
-                    Assert.assertEquals("TLSv1.3", socket.getSession().getProtocol());
-                }
-                Assert.assertEquals(isTls13Supported(), CipherSuiteConverter.isTLSv13CipherSuite(socket.getSession().getCipherSuite()));
+                Assert.assertEquals(protocol, socket.getSession().getProtocol());
+                Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(socket.getSession().getCipherSuite()));
                 serverSocket.close();
                 acceptThread.join();
             }

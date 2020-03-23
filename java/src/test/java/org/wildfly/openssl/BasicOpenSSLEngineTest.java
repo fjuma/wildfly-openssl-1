@@ -391,35 +391,50 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
     public void testTwoWay() throws Exception {
         final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
         for (String protocol : protocols) {
-            final SSLContext serverContext = SSLTestUtils.createSSLContext("openssl." + protocol);
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-            Future<SSLSocket> socketFuture = executorService.submit(() -> {
-                try {
-                    SSLContext clientContext = SSLTestUtils.createClientSSLContext("openssl." + protocol);
-                    SSLSocket sslSocket = (SSLSocket) clientContext.getSocketFactory().createSocket(HOST, PORT);
-                    sslSocket.getSession();
-                    return sslSocket;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            performTestTwoWay("openssl." + protocol, "openssl." + protocol, protocol);
+        }
+    }
 
-            SSLServerSocket sslServerSocket = (SSLServerSocket) serverContext.getServerSocketFactory().createServerSocket(PORT, 10, InetAddress.getByName(HOST));
-            SSLSocket serverSocket = (SSLSocket) sslServerSocket.accept();
-            SSLSession serverSession = serverSocket.getSession();
-            SSLSocket clientSocket = socketFuture.get();
-            SSLSession clientSession = clientSocket.getSession();
+    @Test
+    public void testTwoWayInterop() throws Exception {
+        final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
+        for (String protocol : protocols) {
+            performTestTwoWay("openssl." + protocol, protocol, protocol); // openssl server
+        }
+        for (String protocol : protocols) {
+            performTestTwoWay(protocol, "openssl." + protocol, protocol); // openssl client
+        }
+    }
 
+    private void performTestTwoWay(String serverProvider, String clientProvider, String protocol) throws Exception {
+        final SSLContext serverContext = SSLTestUtils.createSSLContext(serverProvider);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<SSLSocket> socketFuture = executorService.submit(() -> {
             try {
-                Assert.assertEquals(protocol, clientSession.getProtocol());
-                Assert.assertEquals(protocol, serverSession.getProtocol());
-                Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(clientSession.getCipherSuite()));
-                Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(serverSession.getCipherSuite()));
-            } finally {
-                serverSocket.close();
-                clientSocket.close();
-                sslServerSocket.close();
+                SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
+                SSLSocket sslSocket = (SSLSocket) clientContext.getSocketFactory().createSocket(HOST, PORT);
+                sslSocket.getSession();
+                return sslSocket;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
+        });
+
+        SSLServerSocket sslServerSocket = (SSLServerSocket) serverContext.getServerSocketFactory().createServerSocket(PORT, 10, InetAddress.getByName(HOST));
+        SSLSocket serverSocket = (SSLSocket) sslServerSocket.accept();
+        SSLSession serverSession = serverSocket.getSession();
+        SSLSocket clientSocket = socketFuture.get();
+        SSLSession clientSession = clientSocket.getSession();
+
+        try {
+            Assert.assertEquals(protocol, clientSession.getProtocol());
+            Assert.assertEquals(protocol, serverSession.getProtocol());
+            Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(clientSession.getCipherSuite()));
+            Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(serverSession.getCipherSuite()));
+        } finally {
+            serverSocket.close();
+            clientSocket.close();
+            sslServerSocket.close();
         }
     }
 
