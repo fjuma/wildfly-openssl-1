@@ -580,8 +580,8 @@ WF_OPENSSL(jlong, makeSSLContext)(JNIEnv *e, jobject o, jint protocol, jint mode
     c->protocol = protocol;
     c->mode     = mode;
     c->ctx      = ctx;
+    set_CTX_options_internal((c->ctx), SSL_OP_ALL);
     if (ssl_methods.SSLeay() < WF_OPENSSL_VERSION_1_1_0 || ssl_methods.SSLeay() <= WF_OPENSSL_VERSION_1_1_0_F) {
-        set_CTX_options_internal((c->ctx), SSL_OP_ALL);
         /* always disable SSLv2, as per RFC 6176 */
         set_CTX_options_internal((c->ctx), SSL_OP_NO_SSLv2);
         if (!(protocol & SSL_PROTOCOL_SSLV3))
