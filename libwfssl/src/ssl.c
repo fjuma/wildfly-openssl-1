@@ -45,6 +45,8 @@ static int SSL_app_data2_idx = -1; /* context metadata */
 static int SSL_app_data3_idx = -1; /* handshake count */
 static int SSL_CTX_app_data1_idx = -1; /* context metadata */
 
+static int OPENSSL_PROTOCOLS[6] = { SSL3_VERSION, SSL3_VERSION, TLS1_VERSION, TLS1_1_VERSION, TLS1_2_VERSION, TLS1_3_VERSION};
+
 WF_OPENSSL(jint, initialize) (JNIEnv *e, jobject o, jstring libCryptoPath, jstring libSSLPath);
 WF_OPENSSL(jlong, makeSSLContext)(JNIEnv *e, jobject o, jint protocol, jint mode);
 WF_OPENSSL(jobjectArray, getCiphers)(JNIEnv *e, jobject o, jlong ssl);
@@ -541,6 +543,8 @@ WF_OPENSSL(jlong, makeSSLContext)(JNIEnv *e, jobject o, jint protocol, jint mode
     tcn_ssl_ctxt_t *c = NULL;
     SSL_CTX *ctx = NULL;
     jclass clazz;
+    int i;
+    int protoVersion;
 
     if (protocol == SSL_PROTOCOL_NONE) {
         throwIllegalStateException(e, "No SSL protocols requested");
@@ -576,7 +580,8 @@ WF_OPENSSL(jlong, makeSSLContext)(JNIEnv *e, jobject o, jint protocol, jint mode
     c->protocol = protocol;
     c->mode     = mode;
     c->ctx      = ctx;
-    set_CTX_options_internal((c->ctx), SSL_OP_ALL);
+    if (ssl_methods.SSLeay() < WF_OPENSSL_VERSION_1_1_0 || ssl_methods.SSLeay() <= WF_OPENSSL_VERSION_1_1_0_F) {
+        set_CTX_options_internal((c->ctx), SSL_OP_ALL);
         /* always disable SSLv2, as per RFC 6176 */
         set_CTX_options_internal((c->ctx), SSL_OP_NO_SSLv2);
         if (!(protocol & SSL_PROTOCOL_SSLV3))
@@ -591,15 +596,27 @@ WF_OPENSSL(jlong, makeSSLContext)(JNIEnv *e, jobject o, jint protocol, jint mode
             if (!(protocol & SSL_PROTOCOL_TLSV1_2))
                 set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1_2);
         }
-        if (!(protocol & SSL_PROTOCOL_TLSV1_3)) {
-            set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1_3);
+    } else {
+        if (protocol != SSL_PROTOCOL_ALL) {
+            for (i = 0; i < 6; i++) {
+                if (protocol & (1 << i)) {
+                    protoVersion = OPENSSL_PROTOCOLS[i];
+                    break;
+                }
+            }
+            ssl_methods.SSL_CTX_ctrl((c->ctx), SSL_CTRL_SET_MIN_PROTO_VERSION, (protoVersion), NULL);
+            ssl_methods.SSL_CTX_ctrl((c->ctx), SSL_CTRL_SET_MAX_PROTO_VERSION, (protoVersion), NULL);
         }
+    }
+    /*if (!(protocol & SSL_PROTOCOL_TLSV1_3)) {
+        set_CTX_options_internal((c->ctx), SSL_OP_NO_TLSv1_3);
+    }*/
 
-        /*
-         * Configure additional context ingredients
-         */
-        set_CTX_options_internal((c->ctx), SSL_OP_SINGLE_DH_USE);
-        set_CTX_options_internal((c->ctx), SSL_OP_SINGLE_ECDH_USE);
+    /*
+     * Configure additional context ingredients
+     */
+    set_CTX_options_internal((c->ctx), SSL_OP_SINGLE_DH_USE);
+    set_CTX_options_internal((c->ctx), SSL_OP_SINGLE_ECDH_USE);
     /* TODO: what do we do with these defines? */
     #ifdef SSL_OP_NO_COMPRESSION
         /* Disable SSL compression to be safe */

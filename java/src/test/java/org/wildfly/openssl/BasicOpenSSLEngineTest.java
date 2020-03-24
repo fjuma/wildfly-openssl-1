@@ -389,7 +389,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
 
     @Test
     public void testTwoWay() throws Exception {
-        final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
+        final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3", "TLS" };
         for (String protocol : protocols) {
             performTestTwoWay("openssl." + protocol, "openssl." + protocol, protocol);
         }
@@ -427,10 +427,16 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
         SSLSession clientSession = clientSocket.getSession();
 
         try {
-            Assert.assertEquals(protocol, clientSession.getProtocol());
-            Assert.assertEquals(protocol, serverSession.getProtocol());
-            Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(clientSession.getCipherSuite()));
-            Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(serverSession.getCipherSuite()));
+            String expectedProtocol;
+            if (protocol.equals("TLS")) {
+                expectedProtocol = isTls13Supported() ? "TLSv1.3" : "TLSv1.2";
+            } else {
+                expectedProtocol = protocol;
+            }
+            Assert.assertEquals(expectedProtocol, clientSession.getProtocol());
+            Assert.assertEquals(expectedProtocol, serverSession.getProtocol());
+            Assert.assertEquals(expectedProtocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(clientSession.getCipherSuite()));
+            Assert.assertEquals(expectedProtocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(serverSession.getCipherSuite()));
         } finally {
             serverSocket.close();
             clientSocket.close();
