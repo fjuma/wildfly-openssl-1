@@ -68,6 +68,8 @@ public class ALPNTest extends AbstractOpenSSLTest {
                 Assert.assertEquals("client side", "h2", socket.getSelectedApplicationProtocol());
                 Assert.assertEquals(protocol, socket.getSession().getProtocol());
                 Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(socket.getSession().getCipherSuite()));
+                socket.getSession().invalidate();
+                socket.close();
                 serverSocket.close();
                 acceptThread.join();
             }
@@ -105,6 +107,8 @@ public class ALPNTest extends AbstractOpenSSLTest {
                 Assert.assertNull("client side", socket.getSelectedApplicationProtocol());
                 Assert.assertEquals(protocol, socket.getSession().getProtocol());
                 Assert.assertEquals(protocol.equals("TLSv1.3"), CipherSuiteConverter.isTLSv13CipherSuite(socket.getSession().getCipherSuite()));
+                socket.getSession().invalidate();
+                socket.close();
                 serverSocket.close();
                 acceptThread.join();
             }

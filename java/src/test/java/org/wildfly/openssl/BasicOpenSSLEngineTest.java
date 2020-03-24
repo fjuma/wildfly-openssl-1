@@ -292,27 +292,34 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             Thread acceptThread = new Thread(echo);
             acceptThread.start();
 
+            SSLSocket socket = null;
             try {
-                SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+                socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
                 socket.setEnabledProtocols(new String[]{"SSLv3"});
                 socket.connect(SSLTestUtils.createSocketAddress());
                 socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
                 Assert.fail("Expected SSLHandshakeException not thrown");
             } catch (SSLHandshakeException e) {
                 // expected
+                if (socket != null) {
+                    socket.close();
+                }
             }
             try {
-                SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+                socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
                 socket.setEnabledProtocols(new String[]{"TLSv1"});
                 socket.connect(SSLTestUtils.createSocketAddress());
                 socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
                 Assert.fail("Expected SSLHandshakeException not thrown");
             } catch (SSLHandshakeException e) {
                 // expected
+                if (socket != null) {
+                    socket.close();
+                }
             }
             try {
                 if (getJavaSpecVersion() >= 11) {
-                    SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+                    socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
                     socket.setEnabledProtocols(new String[]{"TLSv1.3"});
                     socket.connect(SSLTestUtils.createSocketAddress());
                     socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
@@ -320,6 +327,9 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
                 }
             } catch (SSLHandshakeException e) {
                 // expected
+                if (socket != null) {
+                    socket.close();
+                }
             }
 
             serverSocket.close();
@@ -381,6 +391,8 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
                     Assert.assertArrayEquals(socket.getSession().getId(), sessionID.get());
                 }
 
+                socket.getSession().invalidate();
+                socket.close();
                 serverSocket.close();
                 acceptThread.join();
             }

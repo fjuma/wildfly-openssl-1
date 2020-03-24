@@ -70,6 +70,8 @@ public class BasicOpenSSLSocketTest extends AbstractOpenSSLTest {
                     Assert.assertEquals("hello world", new String(data, 0, read));
                     //TODO: fix client session id
                     //Assert.assertArrayEquals(socket.getSession().getId(), sessionID.get());
+                    socket.getSession().invalidate();
+                    socket.close();
                     serverSocket.close();
                     acceptThread.join();
                 }
@@ -112,6 +114,8 @@ public class BasicOpenSSLSocketTest extends AbstractOpenSSLTest {
                     Assert.assertEquals("hello world", new String(data, 0, read));
                     //TODO: fix client session id
                     //Assert.assertArrayEquals(socket.getSession().getId(), sessionID.get());
+                    socket.getSession().invalidate();
+                    socket.close();
                     serverSocket.close();
                     acceptThread.join();
                 }

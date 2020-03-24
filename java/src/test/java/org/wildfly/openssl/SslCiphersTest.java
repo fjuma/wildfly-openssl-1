@@ -54,6 +54,7 @@ public class SslCiphersTest extends AbstractOpenSSLTest {
             Assert.assertNotNull(cipher, openSslCipherSuite);
             Assert.assertEquals(cipher, CipherSuiteConverter.toJava(openSslCipherSuite, cipher.substring(0, 3)));
         }
+        socket.close();
     }
 
     @Test
