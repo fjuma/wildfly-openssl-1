@@ -169,8 +169,8 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         server1.signal();
         server2.go = false;
         server2.signal();
-        Assert.assertFalse(secondSession1.getCreationTime() == thirdSession1.getCreationTime());
-        Assert.assertFalse(secondSession2.getCreationTime() == thirdSession2.getCreationTime());
+        Assert.assertTrue(secondSession1.getCreationTime() != thirdSession1.getCreationTime());
+        Assert.assertTrue(secondSession2.getCreationTime() != thirdSession2.getCreationTime());
     }
 
     @Test
@@ -183,10 +183,11 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
 
     @Test
     public void testSessionInvalidationOpenSsl() throws Exception {
-        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2" };
+        /*final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2" };
         for (String provider : providers) {
             testSessionInvalidation(provider, provider);
-        }
+        }*/
+        testSessionInvalidationTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
     private void testSessionInvalidation(String serverProvider, String clientProvider) throws Exception {
@@ -214,6 +215,25 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
             serverSocket1.close();
             acceptThread1.join();
         }
+    }
+
+    private void testSessionInvalidationTLS13(String serverProvider, String clientProvider) throws Exception {
+        final int port1 = PORT;
+
+        Server server = startServerTLS13(serverProvider, port1);
+        server.signal();
+        SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
+        SSLSessionContext clientSession = clientContext.getClientSessionContext();
+        while (! server.started) {
+            Thread.yield();
+        }
+        SSLSession firstSession = connect(clientContext, port1);
+        server.signal();
+        firstSession.invalidate();
+        SSLSession secondSession = connect(clientContext, port1);
+        server.go = false;
+        server.signal();
+        Assert.assertTrue(firstSession.getCreationTime() != secondSession.getCreationTime());
     }
 
     @Test
