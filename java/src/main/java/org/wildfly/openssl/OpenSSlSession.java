@@ -48,7 +48,7 @@ class OpenSSlSession implements SSLSession {
     // lazy init for memory reasons
     private Map<String, Object> values;
 
-    private volatile long creationTime = System.currentTimeMillis();
+    private volatile long creationTime;
 
     private volatile byte[] sessionId;
     private volatile long sessionPointer;
@@ -289,17 +289,17 @@ class OpenSSlSession implements SSLSession {
     }
 
     void initialised(long pointer, long ssl, byte[] sessionId) {
-        this.creationTime = System.currentTimeMillis();
         this.sessionPointer = pointer;
         this.sessionId = sessionId;
+        initCreationTime(ssl);
         initPeerCertChain(ssl);
         initCipherSuite(ssl);
         initProtocol(ssl);
     }
 
     void initialised(long ssl) {
-        this.creationTime = System.currentTimeMillis();
         this.sessionPointer = SSL.getInstance().getSession(ssl);
+        initCreationTime(ssl);
         initSessionId(ssl);
         initPeerCertChain(ssl);
         initCipherSuite(ssl);
@@ -319,6 +319,11 @@ class OpenSSlSession implements SSLSession {
         if (c != null) {
             cipherSuite = c;
         }
+    }
+
+    private void initCreationTime(long ssl) {
+        // We need to multiple by 1000 as openssl uses seconds and we need milli-seconds.
+        creationTime = SSL.getInstance().getTime(ssl) * 1000L;
     }
 
 
