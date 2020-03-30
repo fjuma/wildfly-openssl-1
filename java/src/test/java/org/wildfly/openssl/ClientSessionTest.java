@@ -100,7 +100,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
     @Test
     public void testSessionTimeoutTLS13Jsse() throws Exception {
         //testSessionTimeoutTLS13("TLSv1.3", "TLSv1.3");
-        testSessionTimeoutTLS13("TLSv1.2", "openssl.TLSv1.2");
+        testSessionTimeoutTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
     @Test
@@ -146,18 +146,22 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         Server server = startServerTLS13(serverProvider);
         server.signal();
         SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
+        SSLSessionContext clientSession = clientContext.getClientSessionContext();
         while (!server.started) {
             Thread.yield();
         }
         SSLSession firstSession = connect(clientContext);
         server.signal();
-        long secondStartTime = System.currentTimeMillis();
         Thread.sleep(10);
         SSLSession secondSession = connect(clientContext);
+        server.signal();
+        Assert.assertEquals(firstSession.getCreationTime(), secondSession.getCreationTime());
+        clientSession.setSessionTimeout(1);
+        TimeUnit.SECONDS.sleep(2L);
+        SSLSession thirdSession = connect(clientContext);
         server.go = false;
         server.signal();
-
-        Assert.assertEquals(firstSession.getCreationTime(), secondSession.getCreationTime());
+        Assert.assertFalse(secondSession.getCreationTime() == thirdSession.getCreationTime());
     }
 
     @Test
