@@ -87,6 +87,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         for (String protocol : protocols) {
             testSessionTimeout(protocol, "openssl." + protocol);
         }
+        testSessionTimeoutTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
     @Test
@@ -95,16 +96,6 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         for (String protocol : protocols) {
             testSessionTimeout("openssl." + protocol, "openssl." + protocol);
         }
-    }
-
-    @Test
-    public void testSessionTimeoutTLS13Jsse() throws Exception {
-        //testSessionTimeoutTLS13("TLSv1.3", "TLSv1.3");
-        testSessionTimeoutTLS13("TLSv1.3", "openssl.TLSv1.3");
-    }
-
-    @Test
-    public void testSessionTimeoutTLS13OpenSsl() throws Exception {
         testSessionTimeoutTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -143,25 +134,43 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
     }
 
     private void testSessionTimeoutTLS13(String serverProvider, String clientProvider) throws Exception {
-        Server server = startServerTLS13(serverProvider, PORT);
-        server.signal();
+        final int port1 = PORT;
+        final int port2 = SSLTestUtils.SECONDARY_PORT;
+        Server server1 = startServerTLS13(serverProvider, port1);
+        Server server2 = startServerTLS13(serverProvider, port2);
+        server1.signal();
+        server2.signal();
         SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
         SSLSessionContext clientSession = clientContext.getClientSessionContext();
-        while (!server.started) {
+        while (! server1.started) {
             Thread.yield();
         }
-        SSLSession firstSession = connect(clientContext);
-        server.signal();
+        while (! server2.started) {
+            Thread.yield();
+        }
+        SSLSession firstSession1 = connect(clientContext, port1);
+        SSLSession firstSession2 = connect(clientContext, port2);
+        server1.signal();
+        server2.signal();
         Thread.sleep(10);
-        SSLSession secondSession = connect(clientContext);
-        server.signal();
-        Assert.assertEquals(firstSession.getCreationTime(), secondSession.getCreationTime());
+        SSLSession secondSession1 = connect(clientContext, port1);
+        SSLSession secondSession2 = connect(clientContext, port2);
+        server1.signal();
+        server2.signal();
+        // No timeout was set, creation times should be identical
+        Assert.assertEquals(firstSession1.getCreationTime(), secondSession1.getCreationTime());
+        Assert.assertEquals(firstSession2.getCreationTime(), secondSession2.getCreationTime());
+        // Set the session timeout to 1 second and sleep for 2 to ensure the timeout works
         clientSession.setSessionTimeout(1);
         TimeUnit.SECONDS.sleep(2L);
-        SSLSession thirdSession = connect(clientContext);
-        server.go = false;
-        server.signal();
-        Assert.assertFalse(secondSession.getCreationTime() == thirdSession.getCreationTime());
+        SSLSession thirdSession1 = connect(clientContext, port1);
+        SSLSession thirdSession2 = connect(clientContext, port2);
+        server1.go = false;
+        server1.signal();
+        server2.go = false;
+        server2.signal();
+        Assert.assertFalse(secondSession1.getCreationTime() == thirdSession1.getCreationTime());
+        Assert.assertFalse(secondSession2.getCreationTime() == thirdSession2.getCreationTime());
     }
 
     @Test
@@ -488,10 +497,9 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
             socket.connect(new InetSocketAddress(SSLTestUtils.HOST, port));
             socket.addHandshakeCompletedListener(new FutureHandshakeCompletedListener(future));
             socket.getOutputStream().write(HELLO_WORLD);
-            System.out.println("SESSION TIME " + socket.getSession().getCreationTime());
             socket.getOutputStream().flush();
         }
-        return null;//future.get();
+        return future.get();
     }
 
     private SSLSession connectAndWriteTLS13(final SSLContext context, final int port) throws IOException, ExecutionException, InterruptedException {
@@ -683,17 +691,18 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
                         ex.printStackTrace();
                     }
                 }
+                sslServerSocket.close();
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
         }
     }
 
-    private static SSLSession connect(SSLContext sslContext) {
+    private static SSLSession connect(SSLContext sslContext, int port) {
 
         try {
             SSLSocket socket = (SSLSocket) sslContext.getSocketFactory().createSocket();
-            socket.connect(new InetSocketAddress(SSLTestUtils.HOST, PORT));
+            socket.connect(new InetSocketAddress(SSLTestUtils.HOST, port));
             PrintWriter out = new PrintWriter(
                     new OutputStreamWriter(socket.getOutputStream()));
             out.println("message");
