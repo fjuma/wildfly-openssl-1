@@ -143,7 +143,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
     }
 
     private void testSessionTimeoutTLS13(String serverProvider, String clientProvider) throws Exception {
-        Server server = startServerTLS13(serverProvider);
+        Server server = startServerTLS13(serverProvider, PORT);
         server.signal();
         SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
         SSLSessionContext clientSession = clientContext.getClientSessionContext();
@@ -624,8 +624,8 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         }
     }
 
-    private static Server startServerTLS13(String provider) {
-        Server server = new Server(provider);
+    private static Server startServerTLS13(String provider, int port) {
+        Server server = new Server(provider, port);
         new Thread(server).start();
         return server;
     }
@@ -634,12 +634,13 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
 
         public volatile boolean go = true;
         private boolean signal = false;
-        public volatile int port = 0;
         public volatile boolean started = false;
         private String provider;
+        private int port;
 
-        Server(String provider) {
+        Server(String provider, int port) {
             this.provider = provider;
+            this.port = port;
         }
 
         private synchronized void waitForSignal() {
@@ -661,7 +662,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         public void run() {
             try {
                 SSLContext serverContext = SSLTestUtils.createSSLContext(provider);
-                SSLServerSocket sslServerSocket = (SSLServerSocket) serverContext.getServerSocketFactory().createServerSocket(PORT, 10, InetAddress.getByName(HOST));
+                SSLServerSocket sslServerSocket = (SSLServerSocket) serverContext.getServerSocketFactory().createServerSocket(port, 10, InetAddress.getByName(HOST));
 
                 waitForSignal();
                 started = true;
