@@ -175,10 +175,11 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
 
     @Test
     public void testSessionInvalidationJsse() throws Exception {
-        final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
+        /*final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
         for (String provider : providers) {
             testSessionInvalidation(provider, "openssl." + provider);
-        }
+        }*/
+        testSessionInvalidationTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
     @Test
@@ -229,10 +230,15 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         }
         SSLSession firstSession = connect(clientContext, port1);
         server.signal();
+        Assert.assertTrue(firstSession.isValid());
         firstSession.invalidate();
+        Assert.assertFalse(firstSession.isValid());
         SSLSession secondSession = connect(clientContext, port1);
         server.go = false;
         server.signal();
+        System.out.println("ONE " + firstSession.getCreationTime() + "obj " + firstSession);
+        System.out.println("TWO " + secondSession.getCreationTime() + "obj " + secondSession);
+        Assert.assertTrue(secondSession.isValid());
         Assert.assertTrue(firstSession.getCreationTime() != secondSession.getCreationTime());
     }
 
