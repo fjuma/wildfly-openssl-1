@@ -597,6 +597,8 @@ typedef struct {
     int (*SSL_set_max_proto_version)(SSL *ssl, int version);
     int (*SSL_get_min_proto_version)(SSL *ssl);
     int (*SSL_get_max_proto_version)(SSL *ssl);
+    /*long (*SSL_set_timeout)(SSL_SESSION *s, long timeout);*/
+    long (*SSL_SESSION_set_timeout)(SSL_SESSION *s, long timeout);
 } ssl_dynamic_methods;
 
 typedef struct {

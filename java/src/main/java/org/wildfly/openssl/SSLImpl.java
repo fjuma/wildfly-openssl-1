@@ -462,6 +462,13 @@ public class SSLImpl extends SSL {
         return SSLImpl.getSession0(ssl);
     }
 
+    static native long get0Session0(long ssl);
+
+    @Override
+    protected long get0Session(long ssl) {
+        return SSLImpl.get0Session0(ssl);
+    }
+
     static native void setSession0(long ssl, long session);
 
     @Override
@@ -937,5 +944,11 @@ public class SSLImpl extends SSL {
 
     protected int getMaxProtoVersion(long ssl) {
         return SSLImpl.getMaxProtoVersion0(ssl);
+    }
+
+    static native long setTimeout0(long ssl, long timeoutSeconds);
+
+    protected long setTimeout(long ssl, long timeoutSeconds) {
+        return SSLImpl.setTimeout0(ssl, timeoutSeconds);
     }
 }

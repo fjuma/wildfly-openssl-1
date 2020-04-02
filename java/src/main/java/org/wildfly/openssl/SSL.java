@@ -865,6 +865,18 @@ public abstract class SSL {
     protected abstract long getSession(long ssl);
 
     /**
+     * Returns the pointer reference to the SSL session.
+     * <a href="https://www.openssl.org/docs/manmaster/ssl/SSL_get_session.html">https://www.openssl.org/docs/manmaster/ssl/SSL_get_session.html</a>
+     * <p>
+     * This uses the {@code SSL_get_session()}. The reference counter is not incremented.
+     * </p>
+     *
+     * @param ssl the SSL instance (SSL *)
+     * @return the pointer reference to the SSL session
+     */
+    protected abstract long get0Session(long ssl);
+
+    /**
      * Sets the session for the SSL instance.
      * <a href="https://www.openssl.org/docs/manmaster/ssl/SSL_set_session.html">https://www.openssl.org/docs/manmaster/ssl/SSL_set_session.html</a>
      *
@@ -1247,6 +1259,12 @@ public abstract class SSL {
      * @return the minimum supported protocol version
      */
     protected abstract int getMinProtoVersion(long ssl);
+
+    /**
+     * Set the timeout for the internal session in seconds.
+     * http://www.openssl.org/docs/ssl/SSL_set_timeout.html
+     */
+    protected abstract long setTimeout(long ssl, long timeoutSeconds);
 
     /**
      * Get the maximum supported protocol version. This will call {@code SSL_get_max_proto_version}.

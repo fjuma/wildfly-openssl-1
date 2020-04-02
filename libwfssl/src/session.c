@@ -23,6 +23,7 @@ WF_OPENSSL(jlong, sessionTimeouts)(JNIEnv *e, jobject o, jlong ctx);
 WF_OPENSSL(jlong, sessionCacheFull)(JNIEnv *e, jobject o, jlong ctx);
 WF_OPENSSL(void, setSessionTicketKeys)(JNIEnv *e, jobject o, jlong ctx, jbyteArray keys);
 WF_OPENSSL(jlong, getSession)(JNIEnv *e, jobject o, jlong ssl);
+WF_OPENSSL(jlong, get0Session)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(void, setSession)(JNIEnv *e, jobject o, jlong ssl, jlong session);
 WF_OPENSSL(jbyteArray, getSessionId)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(void, invalidateSession)(JNIEnv *e, jobject o, jlong ses);
@@ -239,6 +240,20 @@ WF_OPENSSL(jlong, getSession)(JNIEnv *e, jobject o, jlong ssl)
         return -1;
     }
     session = ssl_methods.SSL_get1_session(ssl_);
+    return P2J(session);
+}
+
+WF_OPENSSL(jlong, get0Session)(JNIEnv *e, jobject o, jlong ssl)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+
+    SSL_SESSION *session;
+    SSL *ssl_ = J2P(ssl, SSL *);
+    if (ssl_ == NULL) {
+        throwIllegalStateException(e, "ssl is null");
+        return -1;
+    }
+    session = ssl_methods.SSL_get_session(ssl_);
     return P2J(session);
 }
 

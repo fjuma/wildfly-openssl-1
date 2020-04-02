@@ -55,6 +55,7 @@ class OpenSSlSession implements SSLSession {
     private volatile boolean valid = true;
     private String cipherSuite = OpenSSLEngine.INVALID_CIPHER;
     private String protocol = "TLS";
+    private long ssl;
 
     OpenSSlSession(boolean server, OpenSSLSessionContext sessionContext) {
         this.server = server;
@@ -75,6 +76,7 @@ class OpenSSlSession implements SSLSession {
     @Override
     public long getCreationTime() {
         // We need ot multiple by 1000 as openssl uses seconds and we need milli-seconds.
+      //  System.out.println("************************" + " SSL " + ssl + "************* RECALC " + SSL.getInstance().getTime(ssl));
         return creationTime;
     }
 
@@ -87,8 +89,11 @@ class OpenSSlSession implements SSLSession {
     @Override
     public synchronized void invalidate() {
         if (valid) {
+            System.out.println("INVALIDATE SESSION PTR " + sessionPointer);
             if(sessionPointer > 0) {
+                System.out.println("**** INVALIDATE ");
                 SSL.getInstance().invalidateSession(sessionPointer);
+                //SSL.getInstance().setTimeout(ssl, 0);
             }
             sessionContext.remove(sessionId);
             sessionPointer = 0;
@@ -289,21 +294,27 @@ class OpenSSlSession implements SSLSession {
     }
 
     void initialised(long pointer, long ssl, byte[] sessionId) {
+        // FJ REMOVE
+        System.out.println("INIT SESSION PTR " + pointer);
         this.sessionPointer = pointer;
         this.sessionId = sessionId;
         initCreationTime(ssl);
         initPeerCertChain(ssl);
         initCipherSuite(ssl);
         initProtocol(ssl);
+       // this.ssl = ssl;
     }
 
     void initialised(long ssl) {
-        this.sessionPointer = SSL.getInstance().getSession(ssl);
+        this.sessionPointer = SSL.getInstance().get0Session(ssl);
+        // FJ REMOVE
+        System.out.println("INIT SSL SESSION PTR " +  this.sessionPointer);
         initCreationTime(ssl);
         initSessionId(ssl);
         initPeerCertChain(ssl);
         initCipherSuite(ssl);
         initProtocol(ssl);
+        //this.ssl = ssl;
     }
 
     private void initSessionId(long ssl) {
@@ -322,8 +333,10 @@ class OpenSSlSession implements SSLSession {
     }
 
     private void initCreationTime(long ssl) {
-        // We need to multiple by 1000 as openssl uses seconds and we need milli-seconds.
+        // We need to multiply by 1000 as openssl uses seconds and we need milli-seconds.
+        // FJ REMOVE
         creationTime = SSL.getInstance().getTime(ssl) * 1000L;
+        System.out.println("Using SSL " + ssl + " creation time " + creationTime);
     }
 
 

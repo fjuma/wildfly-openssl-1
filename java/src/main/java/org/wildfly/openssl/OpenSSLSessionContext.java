@@ -99,6 +99,7 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
         if (session == null) {
             return;
         }
+        System.out.println("***** INVALIDATE IF PRESENT");
         session.invalidate();
     }
 

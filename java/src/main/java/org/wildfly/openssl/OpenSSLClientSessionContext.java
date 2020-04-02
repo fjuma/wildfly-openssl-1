@@ -90,6 +90,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
                 }
             }
             final long sessionPointer = SSL.getInstance().getSession(ssl);
+            System.out.println("STORE CLIENT SIDE SESSION PTR " + sessionPointer);
             addCacheEntry(key, new ClientSessionInfo(sessionPointer, sessionId, System.currentTimeMillis()));
             clientSessionCreated(ssl, sessionPointer, sessionId);
         }
@@ -162,6 +163,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
             long expires = cacheEntry.getTime() + (timeout * 1000);
             if (System.currentTimeMillis() > expires) {
                 removeCacheEntry(key);
+                System.out.println("************************** FJ REMOVE returning null");
                 return null;
             }
         }
@@ -170,6 +172,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
             bumpAccess(cacheEntry);
         }
 
+        System.out.println("************************** FJ REMOVE returning value");
         return cacheEntry.getValue();
     }
 

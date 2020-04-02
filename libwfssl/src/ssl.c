@@ -94,6 +94,7 @@ WF_OPENSSL(void, setMinProtoVersion)(JNIEnv *e, jobject o, jlong ssl, jint versi
 WF_OPENSSL(void, setMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl, jint version);
 WF_OPENSSL(jint, getMinProtoVersion)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(jint, getMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl);
+WF_OPENSSL(jlong, setTimeout)(JNIEnv *e, jobject o, jlong ssl, jlong timeout);
 void init_app_data_idx(void);
 void SSL_set_app_data1(SSL *ssl, tcn_ssl_conn_t *arg);
 void SSL_set_app_data2(SSL *ssl, tcn_ssl_ctxt_t *arg);
@@ -344,6 +345,7 @@ int load_openssl_dynamic_methods(JNIEnv *e, const char * libCryptoPath, const ch
     REQUIRE_SSL_SYMBOL(SSL_SESSION_free);
     REQUIRE_SSL_SYMBOL(SSL_SESSION_get_id);
     REQUIRE_SSL_SYMBOL(SSL_SESSION_get_time);
+    REQUIRE_SSL_SYMBOL(SSL_SESSION_set_timeout);
     REQUIRE_SSL_SYMBOL(SSL_add_file_cert_subjects_to_stack);
     REQUIRE_SSL_SYMBOL(SSL_ctrl);
     REQUIRE_SSL_SYMBOL(SSL_do_handshake);
@@ -357,6 +359,7 @@ int load_openssl_dynamic_methods(JNIEnv *e, const char * libCryptoPath, const ch
     REQUIRE_SSL_SYMBOL(SSL_get_session);
     REQUIRE_SSL_SYMBOL(SSL_get1_session);
     REQUIRE_SSL_SYMBOL(SSL_set_session);
+    /*REQUIRE_SSL_SYMBOL(SSL_set_timeout);*/
     REQUIRE_SSL_SYMBOL(SSL_get_shutdown);
     REQUIRE_SSL_SYMBOL(SSL_get_version);
 
@@ -1701,6 +1704,24 @@ WF_OPENSSL(jint, getMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl)
 
     UNREFERENCED_STDARGS;
     return ssl_methods.SSL_ctrl(c, SSL_CTRL_GET_MAX_PROTO_VERSION, 0, NULL);
+}
+
+WF_OPENSSL(jlong, setTimeout)(JNIEnv *e, jobject o, jlong ssl, jlong timeout)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+    SSL_SESSION *session;
+    SSL *c = J2P(ssl, SSL *);
+    if (c == NULL) {
+        throwIllegalStateException(e, "ssl is null");
+        return 0;
+    }
+    session = ssl_methods.SSL_get_session(c);
+    if(session == NULL) {
+        return 0;
+    }
+
+    UNREFERENCED_STDARGS;
+    return ssl_methods.SSL_SESSION_set_timeout(session, timeout);
 }
 
 
