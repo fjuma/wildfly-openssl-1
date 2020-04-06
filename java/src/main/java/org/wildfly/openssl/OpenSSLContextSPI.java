@@ -174,7 +174,7 @@ public abstract class OpenSSLContextSPI extends SSLContextSpi {
             boolean disableSessionTicketsSupported = false;
             try {
                 disableSessionTicketsSupported = SSL.getInstance().hasOp(SSL.SSL_OP_NO_TICKET);
-                if (disableSessionTicketsSupported) {
+                if (disableSessionTicketsSupported && !isTLS13Supported()) {
                     SSL.getInstance().setSSLContextOptions(ctx, SSL.SSL_OP_NO_TICKET);
                 }
             } catch (UnsatisfiedLinkError e) {
