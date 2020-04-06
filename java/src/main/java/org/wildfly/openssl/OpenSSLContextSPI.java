@@ -18,6 +18,8 @@
 package org.wildfly.openssl;
 
 
+import static org.wildfly.openssl.OpenSSLEngine.isTLS13Supported;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -71,13 +73,6 @@ public abstract class OpenSSLContextSPI extends SSLContextSpi {
 
     private static volatile String[] allAvailableCiphers;
 
-    private static final String javaSpecVersion = System.getProperty("java.specification.version");
-
-    static int getJavaSpecVersion() {
-        if ("1.8".equals(javaSpecVersion)) return 8;
-        return Integer.parseInt(javaSpecVersion);
-    }
-
     private static final String TLS13_CIPHERS = "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:TLS_AES_128_CCM_SHA256:TLS_AES_128_CCM_8_SHA256";
 
     protected final long ctx;
@@ -108,7 +103,7 @@ public abstract class OpenSSLContextSPI extends SSLContextSpi {
                         final long sslCtx = SSL.getInstance().makeSSLContext(SSL.SSL_PROTOCOL_ALL, SSL.SSL_MODE_SERVER);
                         try {
                             SSL.getInstance().setSSLContextOptions(sslCtx, SSL.SSL_OP_ALL);
-                            if (getJavaSpecVersion() >= 11) {
+                            if (isTLS13Supported()) {
                                 try {
                                     SSL.getInstance().setCipherSuiteTLS13(sslCtx, TLS13_CIPHERS);
                                     tls13Supported = true;

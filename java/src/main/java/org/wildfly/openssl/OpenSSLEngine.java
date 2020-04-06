@@ -1482,6 +1482,17 @@ public final class OpenSSLEngine extends SSLEngine {
         return SSL.getInstance().versionNumber() >= VERSION_1_1_1;
     }
 
+    static boolean isTLS13Supported() {
+        return isOpenSSL111OrHigher() && getJavaSpecVersion() >= 11;
+    }
+
+    private static final String javaSpecVersion = System.getProperty("java.specification.version");
+
+    static int getJavaSpecVersion() {
+        if ("1.8".equals(javaSpecVersion)) return 8;
+        return Integer.parseInt(javaSpecVersion);
+    }
+
     private static int getOpenSSLProtocolIndexForProtocol(int version) {
         switch (version) {
             case SSL.SSL3_VERSION:
