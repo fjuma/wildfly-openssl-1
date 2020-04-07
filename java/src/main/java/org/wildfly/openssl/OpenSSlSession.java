@@ -92,7 +92,9 @@ class OpenSSlSession implements SSLSession {
             System.out.println("INVALIDATE SESSION PTR " + sessionPointer);
             if(sessionPointer > 0) {
                 System.out.println("**** INVALIDATE ");
-                SSL.getInstance().invalidateSession(sessionPointer);
+                if (sessionId != null) {
+                    SSL.getInstance().invalidateSession(sessionPointer); // this decrements the ref count and frees the session
+                }
                 //SSL.getInstance().setTimeout(ssl, 0);
             }
             sessionContext.remove(sessionId);

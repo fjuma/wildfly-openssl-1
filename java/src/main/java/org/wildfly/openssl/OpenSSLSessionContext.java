@@ -104,9 +104,11 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
     }
 
     synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
-        final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
-        openSSlSession.initialised(session, ssl, sessionId);
-        sessions.put(new Key(sessionId), openSSlSession);
+        if (sessionId != null) {
+            final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
+            openSSlSession.initialised(session, ssl, sessionId);
+            sessions.put(new Key(sessionId), openSSlSession);
+        }
     }
 
     synchronized void sessionRemovedCallback(byte[] sessionId) {
@@ -125,14 +127,16 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
     }
 
     protected void clientSessionCreated(long ssl, long sessionPointer, byte[] sessionId) {
-        Key key = new Key(sessionId);
-        OpenSSlSession existing = this.sessions.get(key);
-        if(existing != null) {
-            return;
+        if (sessionId != null) {
+            Key key = new Key(sessionId);
+            OpenSSlSession existing = this.sessions.get(key);
+            if (existing != null) {
+                return;
+            }
+            OpenSSlSession session = new OpenSSlSession(false, this);
+            session.initialised(sessionPointer, ssl, sessionId);
+            this.sessions.put(key, session);
         }
-        OpenSSlSession session = new OpenSSlSession(false, this);
-        session.initialised(sessionPointer, ssl, sessionId);
-        this.sessions.put(key, session);
     }
 
     private static class Key {

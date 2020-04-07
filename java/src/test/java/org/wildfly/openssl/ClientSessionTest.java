@@ -173,7 +173,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         Assert.assertTrue(secondSession2.getCreationTime() != thirdSession2.getCreationTime());
     }
 
-    @Test
+    //@Test
     public void testSessionInvalidationJsse() throws Exception {
         /*final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
         for (String provider : providers) {
@@ -228,6 +228,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         while (! server.started) {
             Thread.yield();
         }
+        clientSession.setSessionCacheSize(0); //////////////////////////////////////////
         FutureSessionCreationTime f1 = new FutureSessionCreationTime();
         SSLSession firstSession = connect(clientContext, port1, f1);
         long blah1 = f1.get();
@@ -253,7 +254,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         Assert.assertTrue(firstSession.getCreationTime() != secondSession.getCreationTime());
     }
 
-    @Test
+    //@Test
     public void testSessionSizeJsse() throws Exception {
         final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
         /*for (String provider : providers) {

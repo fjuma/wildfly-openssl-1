@@ -47,7 +47,7 @@ public final class OpenSSLServerSessionContext extends OpenSSLSessionContext {
         if (size < 0) {
             throw new IllegalArgumentException();
         }
-        SSL.getInstance().setSessionCacheSize(context, size);
+        SSL.getInstance().setSessionCacheSize(context, 0); ////////////////////////////////////////
     }
 
     @Override
