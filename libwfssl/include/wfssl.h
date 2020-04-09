@@ -467,6 +467,7 @@ typedef struct {
     int             next_selector_failure_behavior;
     /* End add from netty-tcnative */
     jobject session_context;
+    jobject client_session_context;
 } tcn_ssl_ctxt_t;
 
 
@@ -691,6 +692,7 @@ tcn_ssl_conn_t *SSL_get_app_data1(const SSL *ssl);
 tcn_ssl_ctxt_t *SSL_get_app_data2(const SSL *ssl);
 tcn_ssl_ctxt_t *SSL_CTX_get_app_data1(const SSL_CTX *ssl);
 void setup_session_context(JNIEnv *e, tcn_ssl_ctxt_t *c);
+void setup_client_session_context(JNIEnv *e, tcn_ssl_ctxt_t *c);
 long set_options_internal(SSL *ssl, long options);
 long set_CTX_options_internal(SSL_CTX *ctx, long options);
 /*thread setup function*/

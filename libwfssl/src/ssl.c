@@ -641,7 +641,11 @@ WF_OPENSSL(jlong, makeSSLContext)(JNIEnv *e, jobject o, jint protocol, jint mode
         /* Release idle buffers to the SSL_CTX free list */
         ssl_methods.SSL_CTX_ctrl((c->ctx),SSL_CTRL_MODE,(SSL_MODE_RELEASE_BUFFERS),NULL);
     #endif
-        setup_session_context(e, c);
+        if (mode == SSL_MODE_CLIENT) {
+            setup_client_session_context(e, c);
+        } else {
+            setup_session_context(e, c);
+        }
         crypto_methods.EVP_Digest((const unsigned char *)SSL_DEFAULT_VHOST_NAME,
                    (unsigned long)((sizeof SSL_DEFAULT_VHOST_NAME) - 1),
                    &(c->context_id[0]), NULL, crypto_methods.EVP_sha1(), NULL);

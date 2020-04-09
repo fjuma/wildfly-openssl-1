@@ -92,10 +92,10 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
 
     @Test
     public void testSessionTimeoutOpenSsl() throws Exception {
-        final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
+        /*final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
         for (String protocol : protocols) {
             testSessionTimeout("openssl." + protocol, "openssl." + protocol);
-        }
+        }*/
         testSessionTimeoutTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -150,11 +150,15 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         }
         SSLSession firstSession1 = connect(clientContext, port1, null);
         SSLSession firstSession2 = connect(clientContext, port2, null);
+        System.out.println("ONE " + firstSession1.getCreationTime());
+        System.out.println("TWO " + firstSession2.getCreationTime());
         server1.signal();
         server2.signal();
         Thread.sleep(10);
         SSLSession secondSession1 = connect(clientContext, port1, null);
         SSLSession secondSession2 = connect(clientContext, port2, null);
+        System.out.println("ONE AGAIN SHOULD BE SAME " + secondSession1.getCreationTime());
+        System.out.println("TWO AGAIN SHOULD BE SAME " + secondSession2.getCreationTime());
         server1.signal();
         server2.signal();
         // No timeout was set, creation times should be identical
@@ -165,6 +169,8 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         TimeUnit.SECONDS.sleep(2L);
         SSLSession thirdSession1 = connect(clientContext, port1, null);
         SSLSession thirdSession2 = connect(clientContext, port2, null);
+        System.out.println("ONE SHOULD BE DIFF " + thirdSession1.getCreationTime());
+        System.out.println("TWO " + thirdSession2.getCreationTime());
         server1.go = false;
         server1.signal();
         server2.go = false;
@@ -173,16 +179,16 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         Assert.assertTrue(secondSession2.getCreationTime() != thirdSession2.getCreationTime());
     }
 
-    //@Test
+    @Test
     public void testSessionInvalidationJsse() throws Exception {
         /*final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
         for (String provider : providers) {
             testSessionInvalidation(provider, "openssl." + provider);
         }*/
-        testSessionInvalidationTLS13("TLSv1.3", "TLSv1.3");
+        testSessionInvalidationTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
-    @Test
+    //@Test
     public void testSessionInvalidationOpenSsl() throws Exception {
         /*final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2" };
         for (String provider : providers) {
@@ -254,22 +260,23 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         Assert.assertTrue(firstSession.getCreationTime() != secondSession.getCreationTime());
     }
 
-    //@Test
+    @Test
     public void testSessionSizeJsse() throws Exception {
         final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
         /*for (String provider : providers) {
             testSessionSize(provider, "openssl." + provider);
         }*/
         //testSessionSize("TLSv1.2", "openssl.TLSv1.2");
-        testSessionSizeTLS13("TLSv1.3", "openssl.TLSv1.3");
+        testSessionSizeTLS13("TLSv1.3", "TLSv1.3");
     }
 
-    //@Test
+    @Test
     public void testSessionSizeOpenSsl() throws Exception {
-        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2"};
+        /*final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2"};
         for (String provider : providers) {
             testSessionSize(provider, provider);
-        }
+        }*/
+        testSessionSizeTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
 
@@ -350,6 +357,8 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         // No cache limit was set, id's should be identical
         Assert.assertEquals(host1Session.getCreationTime(), connect(clientContext, port1, null).getCreationTime());
         Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
+        System.out.println("ONE " + host1Session.getCreationTime());
+        System.out.println("TWO " + host2Session.getCreationTime());
         server1.signal();
         server2.signal();
 
@@ -362,6 +371,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         server1.signal();
         server2.signal();
 
+        System.out.println("ONE AGAIN " + nextSession.getCreationTime());
         Assert.assertFalse(host1Session.getCreationTime() == nextSession.getCreationTime());
         // Once more connect to the first host and this should match the previous session
         Assert.assertEquals(nextSession.getCreationTime(), connect(clientContext, port1, null).getCreationTime());

@@ -518,8 +518,8 @@ public abstract class SSL {
      */
     static final int SSL_INFO_CLIENT_CERT_CHAIN = 0x0400;
 
-    /* Only support OFF and SERVER for now */
     static final long SSL_SESS_CACHE_OFF = 0x0000;
+    static final long SSL_SESS_CACHE_CLIENT = 0x0001;
     static final long SSL_SESS_CACHE_SERVER = 0x0002;
 
     static final int SSL_SELECTOR_FAILURE_NO_ADVERTISE = 0;
@@ -1174,6 +1174,8 @@ public abstract class SSL {
     protected abstract void invalidateSession(long ctx);
 
     protected abstract void registerSessionContext(long context, OpenSSLServerSessionContext openSSLServerSessionContext);
+
+    protected abstract void registerClientSessionContext(long context, OpenSSLClientSessionContext openSSLClientSessionContext);
 
     /**
      * Interface implemented by components that will receive the call back to

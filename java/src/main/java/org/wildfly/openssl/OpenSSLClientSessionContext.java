@@ -46,6 +46,16 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
         this.context = context;
         cache = new ConcurrentHashMap<>();
         accessQueue = ConcurrentDirectDeque.newInstance();
+        SSL.getInstance().registerClientSessionContext(context, this);
+    }
+
+    synchronized void clientSessionCreatedCallback(long ssl, long session) {
+        System.out.println("*** CLIENT CALLBACK FIRED FROM " + this.getClass());
+        /*final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
+        openSSlSession.initialised(session, ssl, sessionId);
+        if (openSSlSession.getProtocol() != "TLSv1.3") {
+            sessions.put(new Key(sessionId), openSSlSession);
+        }*/
     }
 
     @Override
@@ -75,6 +85,15 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
     @Override
     public int getSessionCacheSize() {
         return maxCacheSize;
+    }
+
+    public void setSessionCacheEnabled(boolean enabled) {
+        long mode = enabled ? SSL.SSL_SESS_CACHE_CLIENT : SSL.SSL_SESS_CACHE_OFF;
+        SSL.getInstance().setSessionCacheMode(context, mode);
+    }
+
+    public boolean isSessionCacheEnabled() {
+        return SSL.getInstance().getSessionCacheMode(context) == SSL.SSL_SESS_CACHE_CLIENT;
     }
 
     synchronized void storeClientSideSession(final long ssl, final String host, final int port, byte[] sessionId) {

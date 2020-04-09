@@ -94,6 +94,8 @@ class OpenSSlSession implements SSLSession {
                 System.out.println("**** INVALIDATE ");
                 if (sessionId != null) {
                     SSL.getInstance().invalidateSession(sessionPointer); // this decrements the ref count and frees the session
+                } else {
+                    getSessionContext().setSessionTimeout(0);
                 }
                 //SSL.getInstance().setTimeout(ssl, 0);
             }
@@ -308,9 +310,9 @@ class OpenSSlSession implements SSLSession {
     }
 
     void initialised(long ssl) {
-        this.sessionPointer = SSL.getInstance().get0Session(ssl);
+        //this.sessionPointer = SSL.getInstance().get0Session(ssl);
         // FJ REMOVE
-        System.out.println("INIT SSL SESSION PTR " +  this.sessionPointer);
+        //System.out.println("INIT SSL SESSION PTR " +  this.sessionPointer);
         initCreationTime(ssl);
         initSessionId(ssl);
         initPeerCertChain(ssl);

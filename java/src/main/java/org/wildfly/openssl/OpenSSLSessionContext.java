@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 abstract class OpenSSLSessionContext implements SSLSessionContext {
 
-    private final Map<Key, OpenSSlSession> sessions = new ConcurrentHashMap<>();
+    protected final Map<Key, OpenSSlSession> sessions = new ConcurrentHashMap<>();
 
     private final OpenSSLSessionStats stats;
     final long context;
@@ -103,17 +103,27 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
         session.invalidate();
     }
 
-    synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
-        if (sessionId != null) {
-            final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
-            openSSlSession.initialised(session, ssl, sessionId);
+    /*synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
+        System.out.println("*** CALLBACK FIRED FROM " + this.getClass());
+        final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
+        openSSlSession.initialised(session, ssl, sessionId);
+        if (openSSlSession.getProtocol() != "TLSv1.3") {
             sessions.put(new Key(sessionId), openSSlSession);
         }
-    }
+    }*/
 
-    synchronized void sessionRemovedCallback(byte[] sessionId) {
+    /*synchronized void clientSessionCreatedCallback(long ssl, long session) {
+        System.out.println("*** CLIENT CALLBACK FIRED FROM " + this.getClass());*/
+        /*final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
+        openSSlSession.initialised(session, ssl, sessionId);
+        if (openSSlSession.getProtocol() != "TLSv1.3") {
+            sessions.put(new Key(sessionId), openSSlSession);
+        }*/
+    //}
+
+    /*synchronized void sessionRemovedCallback(byte[] sessionId) {
         sessions.remove(new Key(sessionId));
-    }
+    }*/
 
     public void mergeHandshakeSession(SSLSession handshakeSession, byte[] sessionId) {
         Key k = new Key(sessionId);
@@ -139,10 +149,10 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
         }
     }
 
-    private static class Key {
+    protected static class Key {
         private final  byte[] data;
 
-        private Key(byte[] data) {
+        Key(byte[] data) {
             this.data = data;
         }
 

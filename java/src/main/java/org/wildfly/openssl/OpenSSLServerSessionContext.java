@@ -28,6 +28,19 @@ public final class OpenSSLServerSessionContext extends OpenSSLSessionContext {
         SSL.getInstance().registerSessionContext(context, this);
     }
 
+    synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
+        System.out.println("*** CALLBACK FIRED FROM " + this.getClass());
+        final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
+        openSSlSession.initialised(session, ssl, sessionId);
+        if (openSSlSession.getProtocol() != "TLSv1.3") {
+            sessions.put(new Key(sessionId), openSSlSession);
+        }
+    }
+
+    synchronized void sessionRemovedCallback(byte[] sessionId) {
+        sessions.remove(new Key(sessionId));
+    }
+
 
     @Override
     public void setSessionTimeout(int seconds) {
@@ -47,7 +60,7 @@ public final class OpenSSLServerSessionContext extends OpenSSLSessionContext {
         if (size < 0) {
             throw new IllegalArgumentException();
         }
-        SSL.getInstance().setSessionCacheSize(context, 0); ////////////////////////////////////////
+        SSL.getInstance().setSessionCacheSize(context, size);
     }
 
     @Override
