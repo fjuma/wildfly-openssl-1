@@ -40,6 +40,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
     private final long context;
     private int maxCacheSize = 100;
     private volatile boolean enabled;
+    private ClientSessionKey handshakeKey;
 
     OpenSSLClientSessionContext(long context) {
         super(context);
@@ -58,6 +59,18 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
             sessions.put(new Key(sessionId), openSSlSession);
         }*/
     //}
+
+    @Override
+    synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
+        System.out.println("*** CLIENT CALLBACK FIRED FROM " + this.getClass() + "FOR CONTEXT " + context);
+        storeClientSideSession(getHandshakeKey(), ssl, session, sessionId);
+        final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
+        openSSlSession.initialised(session, ssl, sessionId);
+        if (openSSlSession.getProtocol() != "TLSv1.3") {
+            sessions.put(new Key(sessionId), openSSlSession);
+        }
+    }
+
 
     @Override
     public void setSessionTimeout(int seconds) {
@@ -97,6 +110,18 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
         return SSL.getInstance().getSessionCacheMode(context) == SSL.SSL_SESS_CACHE_CLIENT;
     }
 
+    public void setHandshakeKey(String host, int port) {
+        if (host != null && port >= 0) {
+            handshakeKey = new ClientSessionKey(host, port);
+        } else {
+            handshakeKey = null;
+        }
+    }
+
+    public ClientSessionKey getHandshakeKey() {
+        return handshakeKey;
+    }
+
     synchronized void storeClientSideSession(final long ssl, final String host, final int port, byte[] sessionId) {
         if (sessionId != null) {
             if (host != null && port >= 0) {
@@ -111,6 +136,25 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
                     }
                 }
                 final long sessionPointer = SSL.getInstance().getSession(ssl);
+                System.out.println("STORE CLIENT SIDE SESSION PTR " + sessionPointer);
+                addCacheEntry(key, new ClientSessionInfo(sessionPointer, sessionId, System.currentTimeMillis()));
+                clientSessionCreated(ssl, sessionPointer, sessionId);
+            }
+        }
+    }
+
+    synchronized void storeClientSideSession(ClientSessionKey key, long ssl, long sessionPointer, byte[] sessionId) {
+        if (sessionId != null) {
+            if (key != null) {
+                // set with the session pointer from the found session
+                final ClientSessionInfo foundSessionPtr = getCacheValue(key);
+                if (foundSessionPtr != null) {
+                    if (getSession(foundSessionPtr.sessionId) != null) {
+                        removeCacheEntry(key);
+                    } else {
+                        removeCacheEntry(key);
+                    }
+                }
                 System.out.println("STORE CLIENT SIDE SESSION PTR " + sessionPointer);
                 addCacheEntry(key, new ClientSessionInfo(sessionPointer, sessionId, System.currentTimeMillis()));
                 clientSessionCreated(ssl, sessionPointer, sessionId);

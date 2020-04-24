@@ -1144,7 +1144,8 @@ public final class OpenSSLEngine extends SSLEngine {
                     getSessionContext().mergeHandshakeSession(handshakeSession, sessionId);
                 }
                 if (clientMode) {
-                    openSSLContextSPI.engineGetClientSessionContext().storeClientSideSession(ssl, host, port, sessionId);
+                //    openSSLContextSPI.engineGetClientSessionContext().storeClientSideSession(ssl, host, port, sessionId);
+                    openSSLContextSPI.engineGetClientSessionContext().setHandshakeKey(host, port);
                 }
             }
         }
