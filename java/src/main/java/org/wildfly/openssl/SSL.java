@@ -1173,7 +1173,7 @@ public abstract class SSL {
      */
     protected abstract void invalidateSession(long ctx);
 
-    protected abstract void registerSessionContext(long context, OpenSSLServerSessionContext openSSLServerSessionContext);
+    protected abstract void registerSessionContext(long context, OpenSSLSessionContext openSSLSessionContext);
 
     protected abstract void registerClientSessionContext(long context, OpenSSLClientSessionContext openSSLClientSessionContext);
 

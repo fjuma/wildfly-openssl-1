@@ -41,6 +41,19 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
         stats = new OpenSSLSessionStats(context);
     }
 
+    synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
+        System.out.println("*** CALLBACK FIRED FROM " + this.getClass() + "FOR CONTEXT " + context);
+        final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
+        openSSlSession.initialised(session, ssl, sessionId);
+        if (openSSlSession.getProtocol() != "TLSv1.3") {
+            sessions.put(new Key(sessionId), openSSlSession);
+        }
+    }
+
+    synchronized void sessionRemovedCallback(byte[] sessionId) {
+        sessions.remove(new Key(sessionId));
+    }
+
     @Override
     public SSLSession getSession(byte[] bytes) {
         //return sessions.get(new Key(bytes));

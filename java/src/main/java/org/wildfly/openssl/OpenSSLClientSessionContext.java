@@ -46,17 +46,18 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
         this.context = context;
         cache = new ConcurrentHashMap<>();
         accessQueue = ConcurrentDirectDeque.newInstance();
-        SSL.getInstance().registerClientSessionContext(context, this);
+        //SSL.getInstance().registerSessionContext(context, this);
+        //SSL.getInstance().registerClientSessionContext(context, this);
     }
 
-    synchronized void clientSessionCreatedCallback(long ssl, long session) {
-        System.out.println("*** CLIENT CALLBACK FIRED FROM " + this.getClass());
+    //synchronized void clientSessionCreatedCallback(long ssl, long session) {
+    //    System.out.println("*** CLIENT CALLBACK FIRED FROM " + this.getClass());
         /*final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
         openSSlSession.initialised(session, ssl, sessionId);
         if (openSSlSession.getProtocol() != "TLSv1.3") {
             sessions.put(new Key(sessionId), openSSlSession);
         }*/
-    }
+    //}
 
     @Override
     public void setSessionTimeout(int seconds) {

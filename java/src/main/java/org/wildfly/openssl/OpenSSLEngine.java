@@ -186,6 +186,8 @@ public final class OpenSSLEngine extends SSLEngine {
         this.host = host;
         this.port = port;
         this.setServerNameIndication(host);
+        System.out.println("*** REGISTERING " + (clientMode ? "CLIENT" : "SERVER ") + " FOR CONTEXT " + sslCtx);
+        SSL.getInstance().registerSessionContext(sslCtx, getSessionContext());
         this.session = new OpenSSlSession(!clientMode, getSessionContext());
     }
 

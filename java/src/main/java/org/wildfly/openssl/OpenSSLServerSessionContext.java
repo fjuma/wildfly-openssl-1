@@ -25,21 +25,22 @@ public final class OpenSSLServerSessionContext extends OpenSSLSessionContext {
 
     OpenSSLServerSessionContext(long context) {
         super(context);
-        SSL.getInstance().registerSessionContext(context, this);
+        //System.out.println("*** REGISTERING SERVER FOR CONTEXT " + context);
+        //SSL.getInstance().registerSessionContext(context, this);
     }
 
-    synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
+    /*synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
         System.out.println("*** CALLBACK FIRED FROM " + this.getClass());
         final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
         openSSlSession.initialised(session, ssl, sessionId);
         if (openSSlSession.getProtocol() != "TLSv1.3") {
             sessions.put(new Key(sessionId), openSSlSession);
         }
-    }
+    }*/
 
-    synchronized void sessionRemovedCallback(byte[] sessionId) {
+    /*synchronized void sessionRemovedCallback(byte[] sessionId) {
         sessions.remove(new Key(sessionId));
-    }
+    }*/
 
 
     @Override

@@ -861,10 +861,10 @@ public class SSLImpl extends SSL {
         SSLImpl.invalidateSession0(ctx);
     }
 
-    static native void registerSessionContext0(long context, OpenSSLServerSessionContext openSSLServerSessionContext);
+    static native void registerSessionContext0(long context, OpenSSLSessionContext openSSLSessionContext);
 
-    protected void registerSessionContext(long context, OpenSSLServerSessionContext openSSLServerSessionContext) {
-        SSLImpl.registerSessionContext0(context, openSSLServerSessionContext);
+    protected void registerSessionContext(long context, OpenSSLSessionContext openSSLSessionContext) {
+        SSLImpl.registerSessionContext0(context, openSSLSessionContext);
     }
 
     static native void registerClientSessionContext0(long context, OpenSSLClientSessionContext openSSLClientSessionContext);

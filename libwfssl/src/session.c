@@ -29,31 +29,35 @@ WF_OPENSSL(jbyteArray, getSessionId)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(void, invalidateSession)(JNIEnv *e, jobject o, jlong ses);
 WF_OPENSSL(jlong, getTime)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(void, registerSessionContext)(JNIEnv *e, jobject o, jlong ctx, jobject context);
-WF_OPENSSL(void, registerClientSessionContext)(JNIEnv *e, jobject o, jlong ctx, jobject context);
+/*WF_OPENSSL(void, registerClientSessionContext)(JNIEnv *e, jobject o, jlong ctx, jobject context);*/
 jbyteArray getSessionId(JNIEnv *e, SSL_SESSION *session);
 int new_session_cb(SSL * ssl, SSL_SESSION * session);
 void remove_session_cb(SSL_CTX *ctx, SSL_SESSION * session);
-int new_client_session_cb(SSL * ssl, SSL_SESSION * session);
+/*int new_client_session_cb(SSL * ssl, SSL_SESSION * session);*/
 
 
 static jclass sessionContextClass;
-static jclass clientSessionContextClass;
+/*static jclass clientSessionContextClass;*/
 static jmethodID sessionInit;
 static jmethodID sessionRemove;
-static jmethodID clientSessionInit;
+/*static jmethodID clientSessionInit;*/
 
 extern ssl_dynamic_methods ssl_methods;
 extern crypto_dynamic_methods crypto_methods;
 
 void session_init(JNIEnv *e) {
-    jclass sClazz = (*e)->FindClass(e, "org/wildfly/openssl/OpenSSLServerSessionContext");
+    jclass sClazz = (*e)->FindClass(e, "org/wildfly/openssl/OpenSSLSessionContext");
+    sessionContextClass = (jclass) (*e)->NewGlobalRef(e, sClazz);
+    sessionInit = (*e)->GetMethodID(e, sessionContextClass, "sessionCreatedCallback", "(JJ[B)V");
+    sessionRemove = (*e)->GetMethodID(e, sessionContextClass, "sessionRemovedCallback", "([B)V");
+    /*jclass sClazz = (*e)->FindClass(e, "org/wildfly/openssl/OpenSSLServerSessionContext");
     jclass cClazz = (*e)->FindClass(e, "org/wildfly/openssl/OpenSSLClientSessionContext");
     sessionContextClass = (jclass) (*e)->NewGlobalRef(e, sClazz);
     sessionInit = (*e)->GetMethodID(e, sessionContextClass, "sessionCreatedCallback", "(JJ[B)V");
     sessionRemove = (*e)->GetMethodID(e, sessionContextClass, "sessionRemovedCallback", "([B)V");
 
     clientSessionContextClass = (jclass) (*e)->NewGlobalRef(e, cClazz);
-    clientSessionInit = (*e)->GetMethodID(e, clientSessionContextClass, "clientSessionCreatedCallback", "(JJ)V");
+    clientSessionInit = (*e)->GetMethodID(e, clientSessionContextClass, "clientSessionCreatedCallback", "(JJ)V");*/
 }
 
 
@@ -331,13 +335,14 @@ WF_OPENSSL(void, registerSessionContext)(JNIEnv *e, jobject o, jlong ctx, jobjec
 #pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
     tcn_ssl_ctxt_t *c = J2P(ctx, tcn_ssl_ctxt_t *);
     c->session_context = (*e)->NewGlobalRef(e, context);
+    /*setup_session_context(e, c);*/
 }
 
-WF_OPENSSL(void, registerClientSessionContext)(JNIEnv *e, jobject o, jlong ctx, jobject context) {
+/*WF_OPENSSL(void, registerClientSessionContext)(JNIEnv *e, jobject o, jlong ctx, jobject context) {
 #pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
     tcn_ssl_ctxt_t *c = J2P(ctx, tcn_ssl_ctxt_t *);
     c->client_session_context = (*e)->NewGlobalRef(e, context);
-}
+}*/
 
 int new_session_cb(SSL * ssl, SSL_SESSION * session) {
     tcn_ssl_ctxt_t  *c = SSL_get_app_data2(ssl);
@@ -377,7 +382,7 @@ void setup_session_context(JNIEnv *e, tcn_ssl_ctxt_t *c) {
     ssl_methods.SSL_CTX_sess_set_remove_cb(c->ctx, &remove_session_cb);
 }
 
-int new_client_session_cb(SSL * ssl, SSL_SESSION * session) {
+/*int new_client_session_cb(SSL * ssl, SSL_SESSION * session) {
     tcn_ssl_ctxt_t  *c = SSL_get_app_data2(ssl);
     JavaVM *javavm = tcn_get_java_vm();
     JNIEnv *e;
@@ -385,18 +390,18 @@ int new_client_session_cb(SSL * ssl, SSL_SESSION * session) {
     (*e)->CallVoidMethod(e, c->client_session_context, clientSessionInit, P2J(ssl), P2J(session));
     (*javavm)->DetachCurrentThread(javavm);
     return 1;
-}
+}*/
 
-void setup_client_session_context(JNIEnv *e, tcn_ssl_ctxt_t *c) {
+/*void setup_client_session_context(JNIEnv *e, tcn_ssl_ctxt_t *c) {*/
  /* Default session context id and cache size */
-    ssl_methods.SSL_CTX_ctrl(c->ctx,SSL_CTRL_SET_SESS_CACHE_SIZE,SSL_DEFAULT_CACHE_SIZE,NULL);
+    /*ssl_methods.SSL_CTX_ctrl(c->ctx,SSL_CTRL_SET_SESS_CACHE_SIZE,SSL_DEFAULT_CACHE_SIZE,NULL);*/
     /* Session cache is disabled by default */
-	ssl_methods.SSL_CTX_ctrl(c->ctx,SSL_CTRL_SET_SESS_CACHE_MODE,SSL_SESS_CACHE_OFF,NULL);
+	/*ssl_methods.SSL_CTX_ctrl(c->ctx,SSL_CTRL_SET_SESS_CACHE_MODE,SSL_SESS_CACHE_OFF,NULL);*/
     /* Longer session timeout */
-    ssl_methods.SSL_CTX_set_timeout(c->ctx, 14400);
+    /*ssl_methods.SSL_CTX_set_timeout(c->ctx, 14400);*/
 
-    ssl_methods.SSL_CTX_sess_set_new_cb(c->ctx, &new_client_session_cb);
+    /*ssl_methods.SSL_CTX_sess_set_new_cb(c->ctx, &new_client_session_cb);*/
     /*ssl_methods.SSL_CTX_sess_set_remove_cb(c->ctx, &remove_client_session_cb);*/
-}
+/*}*/
 
 
