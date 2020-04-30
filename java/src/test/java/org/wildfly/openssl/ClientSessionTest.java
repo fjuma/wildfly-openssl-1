@@ -188,12 +188,13 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         testSessionInvalidationTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
-    //@Test
+    @Test
     public void testSessionInvalidationOpenSsl() throws Exception {
         /*final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2" };
         for (String provider : providers) {
             testSessionInvalidation(provider, provider);
         }*/
+        //testSessionInvalidation("openssl.TLSv1.2", "openssl.TLSv1.2");
         testSessionInvalidationTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -234,7 +235,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         while (! server.started) {
             Thread.yield();
         }
-        clientSession.setSessionCacheSize(0); //////////////////////////////////////////
+        //clientSession.setSessionCacheSize(0); //////////////////////////////////////////
         FutureSessionCreationTime f1 = new FutureSessionCreationTime();
         SSLSession firstSession = connect(clientContext, port1, f1);
         long blah1 = f1.get();
@@ -248,6 +249,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         ///////////////////////////Thread.sleep(500);
         ///////////clientSession.setSessionTimeout(1);
         //////////TimeUnit.SECONDS.sleep(2L);
+        Thread.sleep(10);
         SSLSession secondSession = connect(clientContext, port1, f2);
         long blah2 = f2.get();
         server.go = false;
@@ -257,6 +259,8 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         System.out.println("TWO " + secondSession.getCreationTime() + blah2 + "obj " + secondSession);
         Assert.assertTrue(secondSession.isValid());
         //Assert.assertTrue(blah1 != blah2);
+        System.out.println("SECOND SESSION ID " + secondSession.getId());
+        Assert.assertFalse(Arrays.equals(firstSession.getId(), secondSession.getId()));
         Assert.assertTrue(firstSession.getCreationTime() != secondSession.getCreationTime());
     }
 

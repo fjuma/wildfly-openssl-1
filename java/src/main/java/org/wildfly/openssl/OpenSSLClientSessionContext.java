@@ -64,11 +64,11 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
     synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
         System.out.println("*** CLIENT CALLBACK FIRED FROM " + this.getClass() + "FOR CONTEXT " + context);
         storeClientSideSession(getHandshakeKey(), ssl, session, sessionId);
-        final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
+        /*final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
         openSSlSession.initialised(session, ssl, sessionId);
         if (openSSlSession.getProtocol() != "TLSv1.3") {
             sessions.put(new Key(sessionId), openSSlSession);
-        }
+        }*/
     }
 
 
@@ -147,7 +147,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
         if (sessionId != null) {
             if (key != null) {
                 // set with the session pointer from the found session
-                final ClientSessionInfo foundSessionPtr = getCacheValue(key);
+                ClientSessionInfo foundSessionPtr = getCacheValue(key);
                 if (foundSessionPtr != null) {
                     if (getSession(foundSessionPtr.sessionId) != null) {
                         removeCacheEntry(key);
@@ -174,6 +174,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
                 } else {
                     synchronized (existingSession) {
                         if (existingSession.isValid()) {
+                            System.out.println("SETTING SESSION TO ID " + foundSessionPtr.sessionId + " SESSION PTR " + foundSessionPtr.session + " TIME " + existingSession.getCreationTime());
                             SSL.getInstance().setSession(ssl, foundSessionPtr.session);
                         }
                     }

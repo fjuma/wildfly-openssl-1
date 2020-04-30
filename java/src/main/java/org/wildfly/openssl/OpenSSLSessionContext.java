@@ -45,19 +45,23 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
         System.out.println("*** CALLBACK FIRED FROM " + this.getClass() + "FOR CONTEXT " + context);
         final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
         openSSlSession.initialised(session, ssl, sessionId);
-        if (openSSlSession.getProtocol() != "TLSv1.3") {
+        if (sessionId != null) {
             sessions.put(new Key(sessionId), openSSlSession);
         }
+        //if (openSSlSession.getProtocol() != "TLSv1.3") {
+        //    sessions.put(new Key(sessionId), openSSlSession);
+        //}
     }
 
     synchronized void sessionRemovedCallback(byte[] sessionId) {
+        System.out.println("**** REMOVE CALLBACK FIRED FROM " + this.getClass() + "FOR CONTEXT " + context);
         sessions.remove(new Key(sessionId));
     }
 
     @Override
     public SSLSession getSession(byte[] bytes) {
-        //return sessions.get(new Key(bytes));
-        return null;
+        return sessions.get(new Key(bytes));
+        //return null;
     }
 
     OpenSSlSession getOpenSSlSession(final byte[] sessionId) {
@@ -98,6 +102,7 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
     }
 
     void remove(byte[] session) {
+        System.out.println("REMOVING SESSION WITH ID " + session);
         this.sessions.remove(new Key(session));
     }
 
@@ -158,6 +163,7 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
             }
             OpenSSlSession session = new OpenSSlSession(false, this);
             session.initialised(sessionPointer, ssl, sessionId);
+            System.out.println("ADDING CLIENT SESSION WITH ID " + sessionId + " PTR " + sessionPointer + "TIME " + session.getCreationTime());
             this.sessions.put(key, session);
         }
     }

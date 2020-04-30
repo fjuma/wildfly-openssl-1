@@ -1019,9 +1019,10 @@ public final class OpenSSLEngine extends SSLEngine {
             }
             return handshakeSession;
         }*/
-        OpenSSlSession test = new OpenSSlSession(!clientMode, getSessionContext());
-        test.initialised(ssl);
-        System.out.println("ACTUAL ENGINE CREATION TIME " + test.getCreationTime());
+        //OpenSSlSession test = new OpenSSlSession(!clientMode, getSessionContext());
+        //test.initialised(ssl);
+        //System.out.println("ACTUAL ENGINE CREATION TIME " + test.getCreationTime());
+        session.initialised(getSsl());
         return session;
     }
 
@@ -1139,14 +1140,18 @@ public final class OpenSSLEngine extends SSLEngine {
         session.initialised(ssl);
         if(handshakeSession != null || clientMode) {
             byte[] sessionId = SSL.getInstance().getSessionId(ssl);
+            if (clientMode) {
+                //    openSSLContextSPI.engineGetClientSessionContext().storeClientSideSession(ssl, host, port, sessionId);
+                openSSLContextSPI.engineGetClientSessionContext().setHandshakeKey(host, port);
+            }
             if (sessionId != null) {
                 if (handshakeSession != null) {
                     getSessionContext().mergeHandshakeSession(handshakeSession, sessionId);
                 }
-                if (clientMode) {
+                //if (clientMode) {
                 //    openSSLContextSPI.engineGetClientSessionContext().storeClientSideSession(ssl, host, port, sessionId);
-                    openSSLContextSPI.engineGetClientSessionContext().setHandshakeKey(host, port);
-                }
+                //    openSSLContextSPI.engineGetClientSessionContext().setHandshakeKey(host, port);
+                //}
             }
         }
     }
