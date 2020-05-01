@@ -45,6 +45,7 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
         System.out.println("*** CALLBACK FIRED FROM " + this.getClass() + "FOR CONTEXT " + context);
         final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
         openSSlSession.initialised(session, ssl, sessionId);
+        System.out.println("ADDING SERVER SESSION WITH ID " + sessionId);
         if (sessionId != null) {
             sessions.put(new Key(sessionId), openSSlSession);
         }
@@ -163,7 +164,7 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
             }
             OpenSSlSession session = new OpenSSlSession(false, this);
             session.initialised(sessionPointer, ssl, sessionId);
-            System.out.println("ADDING CLIENT SESSION WITH ID " + sessionId + " PTR " + sessionPointer + "TIME " + session.getCreationTime());
+            System.out.println("ADDING CLIENT SESSION WITH ID " + sessionId + " PTR " + sessionPointer + "SESSION ID BEG " + sessionId[0] + " " + sessionId[1] + "TIME " + session.getCreationTime());
             this.sessions.put(key, session);
         }
     }

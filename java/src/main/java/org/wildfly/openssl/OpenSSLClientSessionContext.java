@@ -155,7 +155,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
                         removeCacheEntry(key);
                     }
                 }
-                System.out.println("STORE CLIENT SIDE SESSION PTR " + sessionPointer);
+                System.out.println("STORE CLIENT SIDE SESSION PTR " + sessionPointer + "SESSION ID BEG " + sessionId[0] + " " + sessionId[1]);
                 addCacheEntry(key, new ClientSessionInfo(sessionPointer, sessionId, System.currentTimeMillis()));
                 clientSessionCreated(ssl, sessionPointer, sessionId);
             }

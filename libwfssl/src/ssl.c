@@ -401,6 +401,7 @@ int load_openssl_dynamic_methods(JNIEnv *e, const char * libCryptoPath, const ch
     GET_SSL_SYMBOL(SSL_CTX_set_options);
     GET_SSL_SYMBOL(SSL_CTX_get_options);
     GET_SSL_SYMBOL(SSL_CTX_clear_options);
+    GET_SSL_SYMBOL(SSL_CTX_set_num_tickets);
 
     REQUIRE_CRYPTO_SYMBOL(ASN1_INTEGER_cmp);
     REQUIRE_CRYPTO_SYMBOL(BIO_ctrl);
