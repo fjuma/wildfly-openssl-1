@@ -1141,8 +1141,9 @@ public final class OpenSSLEngine extends SSLEngine {
         if(handshakeSession != null || clientMode) {
             byte[] sessionId = SSL.getInstance().getSessionId(ssl);
             if (clientMode) {
-                //    openSSLContextSPI.engineGetClientSessionContext().storeClientSideSession(ssl, host, port, sessionId);
-                openSSLContextSPI.engineGetClientSessionContext().setHandshakeKey(host, port);
+                    System.out.println("********************** HANDSHAKE FINISHED CLIENT MODE ");
+                    //////////openSSLContextSPI.engineGetClientSessionContext().storeClientSideSession(ssl, host, port, sessionId);
+                ////openSSLContextSPI.engineGetClientSessionContext().setHandshakeKey(host, port);
             }
             if (sessionId != null) {
                 if (handshakeSession != null) {
@@ -1467,10 +1468,26 @@ public final class OpenSSLEngine extends SSLEngine {
     void setHost(final String host) {
         this.host = host;
         this.setServerNameIndication(host);
+        this.setHandshakeKeyHost(host);
     }
 
     void setPort(final int port) {
         this.port = port;
+        this.setHandshakeKeyPort(port);
+    }
+
+    void setHandshakeKeyHost(String host) {
+        if (clientMode) {
+            if (host != null && ! host.isEmpty()) {
+                ((OpenSSLClientSessionContext) getSessionContext()).setHandshakeKeyHost(host);
+            }
+        }
+    }
+
+    void setHandshakeKeyPort(int port) {
+        if (clientMode) {
+            ((OpenSSLClientSessionContext) getSessionContext()).setHandshakeKeyPort(port);
+        }
     }
 
     /**

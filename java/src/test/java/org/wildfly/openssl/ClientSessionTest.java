@@ -270,8 +270,8 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         /*for (String provider : providers) {
             testSessionSize(provider, "openssl." + provider);
         }*/
-        //testSessionSize("TLSv1.2", "openssl.TLSv1.2");
-        testSessionSizeTLS13("TLSv1.3", "openssl.TLSv1.3");
+        testSessionSize("TLSv1.2", "openssl.TLSv1.2");
+        //testSessionSizeTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
     @Test

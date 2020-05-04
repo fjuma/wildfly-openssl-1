@@ -41,6 +41,8 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
     private int maxCacheSize = 100;
     private volatile boolean enabled;
     private ClientSessionKey handshakeKey;
+    private String handshakeKeyHost;
+    private int handshakeKeyPort;
 
     OpenSSLClientSessionContext(long context) {
         super(context);
@@ -118,8 +120,20 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
         }
     }
 
+    public void setHandshakeKeyHost(String handshakeKeyHost) {
+        this.handshakeKeyHost = handshakeKeyHost;
+    }
+
+    public void setHandshakeKeyPort(int handshakeKeyPort) {
+        this.handshakeKeyPort = handshakeKeyPort;
+    }
+
     public ClientSessionKey getHandshakeKey() {
-        return handshakeKey;
+        System.out.println("HOST " + handshakeKeyHost + "PORT " + handshakeKeyPort);
+        if (handshakeKeyHost != null && handshakeKeyPort >= 0) {
+            return new ClientSessionKey(handshakeKeyHost, handshakeKeyPort);
+        }
+        return null;
     }
 
     synchronized void storeClientSideSession(final long ssl, final String host, final int port, byte[] sessionId) {
@@ -144,6 +158,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
     }
 
     synchronized void storeClientSideSession(ClientSessionKey key, long ssl, long sessionPointer, byte[] sessionId) {
+        System.out.println("CLIENT KEY " + key);
         if (sessionId != null) {
             if (key != null) {
                 // set with the session pointer from the found session
