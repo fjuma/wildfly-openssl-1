@@ -64,7 +64,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
 
     @Override
     synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
-        System.out.println("*** CLIENT CALLBACK FIRED FROM " + this.getClass() + "FOR CONTEXT " + context);
+        System.out.println("*** CLIENT CALLBACK FIRED FROM " + this.getClass() + "FOR CONTEXT " + context + " **** SESSION REUSED *** " + SSL.getInstance().getSSLSessionReused(ssl));
         storeClientSideSession(getHandshakeKey(), ssl, session, sessionId);
         /*final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
         openSSlSession.initialised(session, ssl, sessionId);

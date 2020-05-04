@@ -95,6 +95,7 @@ WF_OPENSSL(void, setMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl, jint versi
 WF_OPENSSL(jint, getMinProtoVersion)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(jint, getMaxProtoVersion)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(jlong, setTimeout)(JNIEnv *e, jobject o, jlong ssl, jlong timeout);
+WF_OPENSSL(jboolean, getSSLSessionReused)(JNIEnv *e, jobject o, jlong ssl);
 void init_app_data_idx(void);
 void SSL_set_app_data1(SSL *ssl, tcn_ssl_conn_t *arg);
 void SSL_set_app_data2(SSL *ssl, tcn_ssl_ctxt_t *arg);
@@ -402,6 +403,7 @@ int load_openssl_dynamic_methods(JNIEnv *e, const char * libCryptoPath, const ch
     GET_SSL_SYMBOL(SSL_CTX_get_options);
     GET_SSL_SYMBOL(SSL_CTX_clear_options);
     GET_SSL_SYMBOL(SSL_CTX_set_num_tickets);
+    GET_SSL_SYMBOL(SSL_session_reused);
 
     REQUIRE_CRYPTO_SYMBOL(ASN1_INTEGER_cmp);
     REQUIRE_CRYPTO_SYMBOL(BIO_ctrl);
@@ -1727,6 +1729,19 @@ WF_OPENSSL(jlong, setTimeout)(JNIEnv *e, jobject o, jlong ssl, jlong timeout)
 
     UNREFERENCED_STDARGS;
     return ssl_methods.SSL_SESSION_set_timeout(session, timeout);
+}
+
+WF_OPENSSL(jboolean, getSSLSessionReused)(JNIEnv *e, jobject o, jlong ssl)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+    SSL *c = J2P(ssl, SSL *);
+    int res;
+    UNREFERENCED(o);
+    res = ssl_methods.SSL_session_reused(c);
+    if (res == 1) {
+        return JNI_TRUE;
+    }
+    return JNI_FALSE;
 }
 
 

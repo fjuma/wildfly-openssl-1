@@ -957,4 +957,10 @@ public class SSLImpl extends SSL {
     protected long setTimeout(long ssl, long timeoutSeconds) {
         return SSLImpl.setTimeout0(ssl, timeoutSeconds);
     }
+
+    static native boolean getSSLSessionReused0(long ssl);
+
+    protected boolean getSSLSessionReused(long ssl) {
+        return SSLImpl.getSSLSessionReused0(ssl);
+    }
 }

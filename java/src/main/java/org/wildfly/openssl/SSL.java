@@ -1277,6 +1277,14 @@ public abstract class SSL {
      */
     protected abstract int getMaxProtoVersion(long ssl);
 
+    /**
+     * Return whether or not the SSL session was reused.
+     * See https://www.openssl.org/docs/man1.1.1/man3/SSL_session_reused.html
+     * @param ssl the SSL engine
+     * @return {@code true} if the SSL session was reused and {@code false} otherwise
+     */
+    protected abstract boolean getSSLSessionReused(long ssl);
+
     private static final class VersionedLibrary implements Comparable<VersionedLibrary> {
         final String file;
         final String versionPart;
