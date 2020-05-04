@@ -752,6 +752,14 @@ public abstract class SSL {
     protected abstract long getTime(long ssl);
 
     /**
+     * SSL_SESSION_get_time
+     * https://www.openssl.org/docs/man1.1.1/man3/SSL_SESSION_get_time.html
+     * @param session the SSL session (SSL_SESSION *session)
+     * @return returns the time at which the session was established. The time is given in seconds since the Epoch
+     */
+    protected abstract long getSessionTime(long session);
+
+    /**
      * Set Type of Client Certificate verification and Maximum depth of CA Certificates
      * in Client Certificate verification.
      * <br />

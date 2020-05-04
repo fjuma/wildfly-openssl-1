@@ -963,4 +963,11 @@ public class SSLImpl extends SSL {
     protected boolean getSSLSessionReused(long ssl) {
         return SSLImpl.getSSLSessionReused0(ssl);
     }
+
+    static native long getSessionTime0(long session);
+
+    protected long getSessionTime(long session) {
+        return SSLImpl.getSessionTime0(session);
+    }
+
 }

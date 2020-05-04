@@ -164,7 +164,7 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
             }
             OpenSSlSession session = new OpenSSlSession(false, this);
             session.initialised(sessionPointer, ssl, sessionId);
-            System.out.println("ADDING CLIENT SESSION WITH ID " + sessionId + " PTR " + sessionPointer + "SESSION ID BEG " + sessionId[0] + " " + sessionId[1] + "TIME " + session.getCreationTime());
+            System.out.println("ADDING CLIENT SESSION WITH ID " + sessionId + " PTR " + sessionPointer + "SESSION ID BEG " + sessionId[0] + " " + sessionId[1] + "SSL " + ssl + " TIME " + session.getCreationTime());
             this.sessions.put(key, session);
         }
     }

@@ -29,6 +29,7 @@ WF_OPENSSL(jbyteArray, getSessionId)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(void, invalidateSession)(JNIEnv *e, jobject o, jlong ses);
 WF_OPENSSL(jlong, getTime)(JNIEnv *e, jobject o, jlong ssl);
 WF_OPENSSL(void, registerSessionContext)(JNIEnv *e, jobject o, jlong ctx, jobject context);
+WF_OPENSSL(jlong, getSessionTime)(JNIEnv *e, jobject o, jlong session);
 /*WF_OPENSSL(void, registerClientSessionContext)(JNIEnv *e, jobject o, jlong ctx, jobject context);*/
 jbyteArray getSessionId(JNIEnv *e, SSL_SESSION *session);
 int new_session_cb(SSL * ssl, SSL_SESSION * session);
@@ -329,6 +330,17 @@ WF_OPENSSL(jlong, getTime)(JNIEnv *e, jobject o, jlong ssl)
   }
   session = ssl_methods.SSL_get_session(ssl_);
   return ssl_methods.SSL_SESSION_get_time(session);
+}
+
+WF_OPENSSL(jlong, getSessionTime)(JNIEnv *e, jobject o, jlong session)
+{
+#pragma comment(linker, "/EXPORT:"__FUNCTION__"="__FUNCDNAME__)
+    SSL_SESSION *session_ = J2P(session, SSL_SESSION *);
+    if (session_ == NULL) {
+        throwIllegalStateException(e, "session is null");
+        return 0;
+    }
+    return ssl_methods.SSL_SESSION_get_time(session_);
 }
 
 WF_OPENSSL(void, registerSessionContext)(JNIEnv *e, jobject o, jlong ctx, jobject context) {
