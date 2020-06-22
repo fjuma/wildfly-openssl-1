@@ -185,7 +185,9 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         for (String provider : providers) {
             testSessionInvalidation(provider, "openssl." + provider);
         }*/
-        testSessionInvalidationTLS13("TLSv1.3", "openssl.TLSv1.3");
+       // testSessionInvalidationTLS13("TLSv1.3", "openssl.TLSv1.3");
+
+        testSessionInvalidationTLS13("TLSv1.3", "TLSv1.3");
     }
 
     @Test
@@ -194,8 +196,8 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         for (String provider : providers) {
             testSessionInvalidation(provider, provider);
         }*/
-        //testSessionInvalidation("openssl.TLSv1.2", "openssl.TLSv1.2");
-        testSessionInvalidationTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
+        testSessionInvalidation("openssl.TLSv1.2", "openssl.TLSv1.2");
+        //testSessionInvalidationTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
     private void testSessionInvalidation(String serverProvider, String clientProvider) throws Exception {

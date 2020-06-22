@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 abstract class OpenSSLSessionContext implements SSLSessionContext {
 
     protected final Map<Key, OpenSSlSession> sessions = new ConcurrentHashMap<>();
-
     private final OpenSSLSessionStats stats;
     final long context;
 
