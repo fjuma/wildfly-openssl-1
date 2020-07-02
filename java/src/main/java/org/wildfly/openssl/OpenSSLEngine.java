@@ -1022,27 +1022,8 @@ public final class OpenSSLEngine extends SSLEngine {
         //OpenSSlSession test = new OpenSSlSession(!clientMode, getSessionContext());
         //test.initialised(ssl);
         //System.out.println("ACTUAL ENGINE CREATION TIME " + test.getCreationTime());
-        //////////////////session.initialised(getSsl());
-        //////////////////return session;
-        if (!handshakeFinished) {
-            session.initialised(getSsl());
-            return session;
-        } else {
-            return getSessionContext().getSession(SSL.getInstance().getSessionId(getSsl()));
-        }
-        /*initSsl();
-        if (!handshakeFinished) {
-            return getHandshakeSession();
-        }
-        SSLSession session = getSessionContext().getSession(SSL.getInstance().getSessionId(getSsl()));
-        if(session == null) {
-            if(handshakeSession == null) {
-                handshakeSession = new OpenSSlSession(!clientMode, getSessionContext());
-                ((OpenSSlSession) handshakeSession).initialised(getSsl());
-            }
-            return handshakeSession;
-        }
-        return session;*/
+        session.initialised(getSsl());
+        return session;
     }
 
     @Override

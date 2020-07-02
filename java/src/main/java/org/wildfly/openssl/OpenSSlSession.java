@@ -48,7 +48,7 @@ class OpenSSlSession implements SSLSession {
     // lazy init for memory reasons
     private Map<String, Object> values;
 
-    private volatile long creationTime = System.currentTimeMillis();;
+    private volatile long creationTime;
 
     private volatile byte[] sessionId;
     private volatile long sessionPointer;
@@ -92,9 +92,9 @@ class OpenSSlSession implements SSLSession {
             System.out.println("INVALIDATE SESSION PTR " + sessionPointer);
             if(sessionPointer > 0) {
                 System.out.println("**** INVALIDATE ");
-                //if (sessionId != null) {
-                SSL.getInstance().invalidateSession(sessionPointer); // this decrements the ref count and frees the session
-                //}// else {
+                if (sessionId != null) {
+                    SSL.getInstance().invalidateSession(sessionPointer); // this decrements the ref count and frees the session
+                }// else {
                  //   getSessionContext().setSessionTimeout(0);
                 //}
                 //SSL.getInstance().setTimeout(ssl, 0);
@@ -302,7 +302,7 @@ class OpenSSlSession implements SSLSession {
         System.out.println("INIT SESSION PTR " + pointer);
         this.sessionPointer = pointer;
         this.sessionId = sessionId;
-        //initCreationTime(ssl);
+        initCreationTime(ssl);
         initPeerCertChain(ssl);
         initCipherSuite(ssl);
         initProtocol(ssl);
@@ -313,7 +313,7 @@ class OpenSSlSession implements SSLSession {
         //this.sessionPointer = SSL.getInstance().get0Session(ssl);
         // FJ REMOVE
         //System.out.println("INIT SSL SESSION PTR " +  this.sessionPointer);
-        //initCreationTime(ssl);
+        initCreationTime(ssl);
         initSessionId(ssl);
         initPeerCertChain(ssl);
         initCipherSuite(ssl);
