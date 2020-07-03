@@ -1023,6 +1023,7 @@ public final class OpenSSLEngine extends SSLEngine {
         //test.initialised(ssl);
         //System.out.println("ACTUAL ENGINE CREATION TIME " + test.getCreationTime());
         session.initialised(getSsl());
+        System.out.println("**** ENGINE SSL IS " + ssl + " SESSION " + SSL.getInstance().getSession(ssl) + " CREATION TIME " + SSL.getInstance().getTime(ssl));
         return session;
     }
 

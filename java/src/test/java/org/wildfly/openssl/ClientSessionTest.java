@@ -92,10 +92,10 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
 
     @Test
     public void testSessionTimeoutOpenSsl() throws Exception {
-        /*final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
+        final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
         for (String protocol : protocols) {
             testSessionTimeout("openssl." + protocol, "openssl." + protocol);
-        }*/
+        }
         testSessionTimeoutTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -181,10 +181,10 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
 
     @Test
     public void testSessionInvalidationJsse() throws Exception {
-        /*final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
+        final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
         for (String provider : providers) {
             testSessionInvalidation(provider, "openssl." + provider);
-        }*/
+        }
         testSessionInvalidationTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -194,7 +194,6 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         for (String provider : providers) {
             testSessionInvalidation(provider, provider);
         }*/
-        //testSessionInvalidation("openssl.TLSv1.2", "openssl.TLSv1.2");
         testSessionInvalidationTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -235,31 +234,18 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         while (! server.started) {
             Thread.yield();
         }
-        //clientSession.setSessionCacheSize(0); //////////////////////////////////////////
         FutureSessionCreationTime f1 = new FutureSessionCreationTime();
         SSLSession firstSession = connect(clientContext, port1, f1);
-        long blah1 = f1.get();
         server.signal();
         Assert.assertTrue(firstSession.isValid());
         firstSession.invalidate();
-        Thread.sleep(10);
-        ///////////////////////clientSession.setSessionTimeout(0);
+        Thread.sleep(1000);
         Assert.assertFalse(firstSession.isValid());
         FutureSessionCreationTime f2 = new FutureSessionCreationTime();
-        long newTime = System.currentTimeMillis();
-        ///////////////////////////Thread.sleep(500);
-        ///////////clientSession.setSessionTimeout(1);
-        //////////TimeUnit.SECONDS.sleep(2L);
         SSLSession secondSession = connect(clientContext, port1, f2);
-        long blah2 = f2.get();
         server.go = false;
         server.signal();
-        System.out.println("ONE " + firstSession.getCreationTime() + blah1 + "obj " + firstSession);
-        System.out.println("NOW " + newTime);
-        System.out.println("TWO " + secondSession.getCreationTime() + blah2 + "obj " + secondSession);
         Assert.assertTrue(secondSession.isValid());
-        //Assert.assertTrue(blah1 != blah2);
-        System.out.println("SECOND SESSION ID " + secondSession.getId());
         Assert.assertFalse(Arrays.equals(firstSession.getId(), secondSession.getId()));
         Assert.assertTrue(firstSession.getCreationTime() != secondSession.getCreationTime());
     }
@@ -301,6 +287,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
             final SSLSessionContext clientSession = clientContext.getClientSessionContext();
 
             byte[] host1SessionId = connectAndWrite(clientContext, port1);
+            Thread.sleep(1000);
             byte[] host2SessionId = connectAndWrite(clientContext, port2);
 
             // No cache limit was set, id's should be identical
@@ -312,6 +299,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
             // The second session id should be the one kept as it was the last one used
             Assert.assertArrayEquals(host2SessionId, connectAndWrite(clientContext, port2));
             // Connect again to the first host, this should not match the initial session id for the first host
+            //Thread.sleep(2000);
             byte[] nextId = connectAndWrite(clientContext, port1);
             Assert.assertFalse(Arrays.equals(host1SessionId, nextId));
             // Once more connect to the first host and this should match the previous session id
@@ -354,21 +342,14 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         }
 
         SSLSession host1Session = connect(clientContext, port1, null);
+        Thread.sleep(1000);
         SSLSession host2Session = connect(clientContext, port2, null);
         server1.signal();
         server2.signal();
 
         // No cache limit was set, id's should be identical
         Assert.assertEquals(host1Session.getCreationTime(), connect(clientContext, port1, null).getCreationTime());
-        Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
-        server1.signal();
-        server2.signal();
-
-        //Assert.assertArrayEquals(host2Session.getId(), connect(clientContext, port2, null).getId());
-        Assert.assertEquals(host1Session.getCreationTime(), connect(clientContext, port1, null).getCreationTime());
-        Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
-        //System.out.println("ONE " + host1Session.getCreationTime());
-        //System.out.println("TWO " + host2Session.getCreationTime());
+//        Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
         server1.signal();
         server2.signal();
 
@@ -377,6 +358,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         // The second session should be the one kept as it was the last one used
         Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
         // Connect again to the first host, this should not match the initial session for the first host
+        Thread.sleep(1000);
         SSLSession nextSession = connect(clientContext, port1, null);
         server1.signal();
         server2.signal();
@@ -384,11 +366,11 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         System.out.println("ONE AGAIN " + nextSession.getCreationTime());
         Assert.assertFalse(host1Session.getCreationTime() == nextSession.getCreationTime());
         // Once more connect to the first host and this should match the previous session
-        //Assert.assertEquals(nextSession.getCreationTime(), connect(clientContext, port1, null).getCreationTime());
+        Assert.assertEquals(nextSession.getCreationTime(), connect(clientContext, port1, null).getCreationTime());
         // Connect to the second host which should be purged at this point
-        //Assert.assertFalse(nextSession.getCreationTime() == connect(clientContext, port2, null).getCreationTime());
-        //server1.signal();
-        //server2.signal();
+        Assert.assertFalse(nextSession.getCreationTime() == connect(clientContext, port2, null).getCreationTime());
+        server1.signal();
+        server2.signal();
 
         // Reset the cache limit and ensure both sessions are cached
         //clientSession.setSessionCacheSize(0);
