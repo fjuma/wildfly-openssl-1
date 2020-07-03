@@ -375,7 +375,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         // Set the cache size to 1
         clientSession.setSessionCacheSize(1);
         // The second session should be the one kept as it was the last one used
-        //Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
+        Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
         // Connect again to the first host, this should not match the initial session for the first host
         SSLSession nextSession = connect(clientContext, port1, null);
         server1.signal();
