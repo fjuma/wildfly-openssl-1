@@ -403,7 +403,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
      *
      * @throws Exception
      */
-    @Test
+    //@Test
     public void testClientSessionInvalidationMultiThreadAccessJsse() throws Exception {
         final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
         for (String provider : providers) {
@@ -411,7 +411,7 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         }
     }
 
-    @Test
+    //@Test
     public void testClientSessionInvalidationMultiThreadAccessOpenSsl() throws Exception {
         final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2", "openssl.TLSv1.3" };
         for (String provider : providers) {
