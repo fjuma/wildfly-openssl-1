@@ -53,6 +53,9 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
     public void basicOpenSSLTest() throws IOException, NoSuchAlgorithmException, InterruptedException {
         final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2", "openssl.TLSv1.3" };
         for (String provider : providers) {
+            if (provider.equals("openssl.TLSv1.3") && ! isTls13Supported()) {
+                continue;
+            }
             basicTest(provider, provider);
         }
     }
@@ -61,9 +64,15 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
     public void basicOpenSSLTestInterop() throws IOException, NoSuchAlgorithmException, InterruptedException {
         final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
         for (String provider : providers) {
+            if (provider.equals("TLSv1.3") && ! isTls13Supported()) {
+                continue;
+            }
             basicTest("openssl." + provider, provider);
         }
         for (String provider : providers) {
+            if (provider.equals("TLSv1.3") && ! isTls13Supported()) {
+                continue;
+            }
             basicTest(provider, "openssl." + provider);
         }
     }
@@ -337,7 +346,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
         }
     }
 
-    @Test(expected = SSLException.class)
+    @Test
     public void testWrongClientSideTrustManagerFailsValidation() throws IOException, NoSuchAlgorithmException, InterruptedException {
         try (ServerSocket serverSocket = SSLTestUtils.createServerSocket()) {
             final AtomicReference<byte[]> sessionID = new AtomicReference<>();
@@ -348,11 +357,14 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             final SSLSocket socket = (SSLSocket) SSLTestUtils.createSSLContext("openssl.TLSv1").getSocketFactory().createSocket();
             socket.setSSLParameters(socket.getSSLParameters());
             socket.connect(SSLTestUtils.createSocketAddress());
-            socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
-            socket.getSession().invalidate();
-            socket.close();
-            serverSocket.close();
-            acceptThread.join();
+            try {
+                socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
+                Assert.fail("Expected SSLException not thrown");
+            } catch (SSLException expected) {
+                socket.close();
+                serverSocket.close();
+                acceptThread.join();
+            }
         }
     }
 
@@ -361,7 +373,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
     public void openSslLotsOfDataTest() throws IOException, NoSuchAlgorithmException, InterruptedException {
         final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
         for (String protocol : protocols) {
-            if (protocol.equals("TLSv1.3") && !isTls13Supported()) {
+            if (protocol.equals("TLSv1.3") && ! isTls13Supported()) {
                 continue;
             }
             try (ServerSocket serverSocket = SSLTestUtils.createServerSocket()) {
@@ -387,7 +399,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
                 socket.getOutputStream().write(new byte[]{0});
 
                 Assert.assertEquals(message, new String(SSLTestUtils.readData(socket.getInputStream())));
-                if (!isTls13Supported()) {
+                if (! isTls13Supported()) {
                     Assert.assertArrayEquals(socket.getSession().getId(), sessionID.get());
                 }
 
@@ -403,6 +415,9 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
     public void testTwoWay() throws Exception {
         final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3", "TLS" };
         for (String protocol : protocols) {
+            if (protocol.equals("TLSv1.3") && ! isTls13Supported()) {
+                continue;
+            }
             performTestTwoWay("openssl." + protocol, "openssl." + protocol, protocol);
         }
     }
@@ -411,9 +426,15 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
     public void testTwoWayInterop() throws Exception {
         final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
         for (String protocol : protocols) {
+            if (protocol.equals("TLSv1.3") && ! isTls13Supported()) {
+                continue;
+            }
             performTestTwoWay("openssl." + protocol, protocol, protocol); // openssl server
         }
         for (String protocol : protocols) {
+            if (protocol.equals("TLSv1.3") && ! isTls13Supported()) {
+                continue;
+            }
             performTestTwoWay(protocol, "openssl." + protocol, protocol); // openssl client
         }
     }

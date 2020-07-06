@@ -81,7 +81,7 @@ public class ALPNTest extends AbstractOpenSSLTest {
         Assume.assumeTrue(OpenSSLEngine.isAlpnSupported());
         final String[] protocols = new String[] { "TLSv1.2", "TLSv1.3" };
         for (String protocol : protocols) {
-            if (protocol.equals("TLSv1.3") && !isTls13Supported()) {
+            if (protocol.equals("TLSv1.3") && ! isTls13Supported()) {
                 continue;
             }
             try (ServerSocket serverSocket = SSLTestUtils.createServerSocket()) {

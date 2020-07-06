@@ -39,7 +39,7 @@ public class BasicOpenSSLSocketTest extends AbstractOpenSSLTest {
     public void basicOpenSSLTest1() throws IOException, NoSuchAlgorithmException, InterruptedException {
         final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
         for (String protocol : protocols) {
-            if (protocol.equals("TLSv1.3") && !isTls13Supported()) {
+            if (protocol.equals("TLSv1.3") && ! isTls13Supported()) {
                 continue;
             }
             try (ServerSocket serverSocket = SSLTestUtils.createServerSocket()) {
@@ -83,7 +83,7 @@ public class BasicOpenSSLSocketTest extends AbstractOpenSSLTest {
     public void basicOpenSSLTest2() throws IOException, NoSuchAlgorithmException, InterruptedException {
         final String[] protocols = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
         for (String protocol : protocols) {
-            if (protocol.equals("TLSv1.3") && !isTls13Supported()) {
+            if (protocol.equals("TLSv1.3") && ! isTls13Supported()) {
                 continue;
             }
             try (ServerSocket serverSocket = SSLTestUtils.createServerSocket()) {
