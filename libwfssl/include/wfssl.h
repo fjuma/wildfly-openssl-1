@@ -600,7 +600,6 @@ typedef struct {
     int (*SSL_get_max_proto_version)(SSL *ssl);
     /*long (*SSL_set_timeout)(SSL_SESSION *s, long timeout);*/
     long (*SSL_SESSION_set_timeout)(SSL_SESSION *s, long timeout);
-    int (*SSL_CTX_set_num_tickets)(SSL_CTX *ctx, size_t num_tickets);
     int (*SSL_session_reused)(SSL *ssl);
 } ssl_dynamic_methods;
 

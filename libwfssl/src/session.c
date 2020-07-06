@@ -391,7 +391,6 @@ void setup_session_context(JNIEnv *e, tcn_ssl_ctxt_t *c) {
     ssl_methods.SSL_CTX_set_timeout(c->ctx, 14400);
 
     ssl_methods.SSL_CTX_sess_set_new_cb(c->ctx, &new_session_cb);
-    ssl_methods.SSL_CTX_set_num_tickets(c->ctx, 1);
     ssl_methods.SSL_CTX_sess_set_remove_cb(c->ctx, &remove_session_cb);
 }
 
