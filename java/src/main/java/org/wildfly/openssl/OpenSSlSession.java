@@ -55,7 +55,7 @@ class OpenSSlSession implements SSLSession {
     private volatile boolean valid = true;
     private String cipherSuite = OpenSSLEngine.INVALID_CIPHER;
     private String protocol = "TLS";
-    private long ssl;
+    private boolean reused;
 
     OpenSSlSession(boolean server, OpenSSLSessionContext sessionContext) {
         this.server = server;
@@ -246,6 +246,9 @@ class OpenSSlSession implements SSLSession {
         return OpenSSLEngine.MAX_PLAINTEXT_LENGTH;
     }
 
+    boolean isReused() {
+        return reused;
+    }
 
     private void initPeerCertChain(long ssl) {
         byte[][] chain = SSL.getInstance().getPeerCertChain(ssl);
@@ -306,6 +309,7 @@ class OpenSSlSession implements SSLSession {
         initPeerCertChain(ssl);
         initCipherSuite(ssl);
         initProtocol(ssl);
+        initReused(ssl);
        // this.ssl = ssl;
     }
 
@@ -318,6 +322,7 @@ class OpenSSlSession implements SSLSession {
         initPeerCertChain(ssl);
         initCipherSuite(ssl);
         initProtocol(ssl);
+        initReused(ssl);
         //this.ssl = ssl;
     }
 
@@ -343,5 +348,8 @@ class OpenSSlSession implements SSLSession {
         System.out.println("Using SSL " + ssl + " creation time " + creationTime);
     }
 
+    private void initReused(long ssl) {
+        reused = SSL.getInstance().getSSLSessionReused(ssl);
+    }
 
 }

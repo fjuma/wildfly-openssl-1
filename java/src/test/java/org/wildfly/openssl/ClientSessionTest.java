@@ -190,10 +190,10 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
 
     @Test
     public void testSessionInvalidationOpenSsl() throws Exception {
-        /*final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2" };
+        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2" };
         for (String provider : providers) {
             testSessionInvalidation(provider, provider);
-        }*/
+        }
         testSessionInvalidationTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -238,16 +238,18 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         SSLSession firstSession = connect(clientContext, port1, f1);
         server.signal();
         Assert.assertTrue(firstSession.isValid());
+        Assert.assertFalse(((OpenSSlSession) firstSession).isReused());
         firstSession.invalidate();
-        Thread.sleep(1000);
+        //Thread.sleep(1000);
         Assert.assertFalse(firstSession.isValid());
         FutureSessionCreationTime f2 = new FutureSessionCreationTime();
         SSLSession secondSession = connect(clientContext, port1, f2);
         server.go = false;
         server.signal();
         Assert.assertTrue(secondSession.isValid());
-        Assert.assertFalse(Arrays.equals(firstSession.getId(), secondSession.getId()));
-        Assert.assertTrue(firstSession.getCreationTime() != secondSession.getCreationTime());
+        Assert.assertFalse(((OpenSSlSession) secondSession).isReused());
+        //Assert.assertFalse(Arrays.equals(firstSession.getId(), secondSession.getId()));
+        //Assert.assertTrue(firstSession.getCreationTime() != secondSession.getCreationTime());
     }
 
     @Test
@@ -342,13 +344,19 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         }
 
         SSLSession host1Session = connect(clientContext, port1, null);
-        Thread.sleep(1000);
+        Assert.assertFalse(((OpenSSlSession) host1Session).isReused());
+        //Thread.sleep(1000);
         SSLSession host2Session = connect(clientContext, port2, null);
+        Assert.assertFalse(((OpenSSlSession) host2Session).isReused());
         server1.signal();
         server2.signal();
 
         // No cache limit was set, id's should be identical
-        Assert.assertEquals(host1Session.getCreationTime(), connect(clientContext, port1, null).getCreationTime());
+        //Assert.assertEquals(host1Session.getCreationTime(), connect(clientContext, port1, null).getCreationTime());
+        host1Session = connect(clientContext, port1, null);
+        Assert.assertTrue(((OpenSSlSession) host1Session).isReused());
+        host2Session = connect(clientContext, port2, null);
+        Assert.assertTrue(((OpenSSlSession) host2Session).isReused());
 //        Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
         server1.signal();
         server2.signal();
@@ -356,36 +364,44 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
         // Set the cache size to 1
         clientSession.setSessionCacheSize(1);
         // The second session should be the one kept as it was the last one used
-        Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
+        host2Session = connect(clientContext, port2, null);
+        Assert.assertTrue(((OpenSSlSession) host2Session).isReused());
         // Connect again to the first host, this should not match the initial session for the first host
-        Thread.sleep(1000);
+       // Thread.sleep(1000);
         SSLSession nextSession = connect(clientContext, port1, null);
+        Assert.assertFalse(((OpenSSlSession) nextSession).isReused());
         server1.signal();
         server2.signal();
 
         System.out.println("ONE AGAIN " + nextSession.getCreationTime());
-        Assert.assertFalse(host1Session.getCreationTime() == nextSession.getCreationTime());
+        //Assert.assertFalse(host1Session.getCreationTime() == nextSession.getCreationTime());
         // Once more connect to the first host and this should match the previous session
-        Assert.assertEquals(nextSession.getCreationTime(), connect(clientContext, port1, null).getCreationTime());
+        nextSession = connect(clientContext, port1, null);
+        Assert.assertTrue(((OpenSSlSession) nextSession).isReused());
         // Connect to the second host which should be purged at this point
-        Assert.assertFalse(nextSession.getCreationTime() == connect(clientContext, port2, null).getCreationTime());
+        nextSession = connect(clientContext, port2, null);
+        Assert.assertFalse(((OpenSSlSession) nextSession).isReused());
         server1.signal();
         server2.signal();
 
         // Reset the cache limit and ensure both sessions are cached
-        //clientSession.setSessionCacheSize(0);
-        //host1Session = connect(clientContext, port1, null);
-        //host2Session = connect(clientContext, port2, null);
-        //server1.signal();
-        //server2.signal();
+        clientSession.setSessionCacheSize(0);
+        host1Session = connect(clientContext, port1, null);
+        Assert.assertFalse(((OpenSSlSession) host1Session).isReused());
+        host2Session = connect(clientContext, port2, null);
+        Assert.assertTrue(((OpenSSlSession) host2Session).isReused());
+        server1.signal();
+        server2.signal();
 
         // No cache limit was set, id's should be identical
-        //Assert.assertEquals(host1Session.getCreationTime(), connect(clientContext, port1, null).getCreationTime());
-        //Assert.assertEquals(host2Session.getCreationTime(), connect(clientContext, port2, null).getCreationTime());
-        //server1.go = false;
-        //server1.signal();
-        //server2.go = false;
-        //server2.signal();
+        host1Session = connect(clientContext, port1, null);
+        Assert.assertTrue(((OpenSSlSession) host1Session).isReused());
+        host2Session = connect(clientContext, port2, null);
+        Assert.assertTrue(((OpenSSlSession) host2Session).isReused());
+        server1.go = false;
+        server1.signal();
+        server2.go = false;
+        server2.signal();
     }
 
     /**
