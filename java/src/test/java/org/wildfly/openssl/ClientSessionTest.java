@@ -149,34 +149,31 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
             Thread.yield();
         }
         SSLSession firstSession1 = connect(clientContext, port1, null);
+        Assert.assertFalse(((OpenSSlSession) firstSession1).isReused());
         SSLSession firstSession2 = connect(clientContext, port2, null);
-        System.out.println("ONE " + firstSession1.getCreationTime());
-        System.out.println("TWO " + firstSession2.getCreationTime());
+        Assert.assertFalse(((OpenSSlSession) firstSession2).isReused());
         server1.signal();
         server2.signal();
-        Thread.sleep(10);
+
+        // No timeout was set, sessions should be reused
         SSLSession secondSession1 = connect(clientContext, port1, null);
+        Assert.assertTrue(((OpenSSlSession) secondSession1).isReused());
         SSLSession secondSession2 = connect(clientContext, port2, null);
-        System.out.println("ONE AGAIN SHOULD BE SAME " + secondSession1.getCreationTime());
-        System.out.println("TWO AGAIN SHOULD BE SAME " + secondSession2.getCreationTime());
+        Assert.assertTrue(((OpenSSlSession) secondSession2).isReused());
         server1.signal();
         server2.signal();
-        // No timeout was set, creation times should be identical
-        Assert.assertEquals(firstSession1.getCreationTime(), secondSession1.getCreationTime());
-        Assert.assertEquals(firstSession2.getCreationTime(), secondSession2.getCreationTime());
+
         // Set the session timeout to 1 second and sleep for 2 to ensure the timeout works
         clientSession.setSessionTimeout(1);
         TimeUnit.SECONDS.sleep(2L);
         SSLSession thirdSession1 = connect(clientContext, port1, null);
+        Assert.assertFalse(((OpenSSlSession) thirdSession1).isReused());
         SSLSession thirdSession2 = connect(clientContext, port2, null);
-        System.out.println("ONE SHOULD BE DIFF " + thirdSession1.getCreationTime());
-        System.out.println("TWO " + thirdSession2.getCreationTime());
+        Assert.assertFalse(((OpenSSlSession) thirdSession2).isReused());
         server1.go = false;
         server1.signal();
         server2.go = false;
         server2.signal();
-        Assert.assertTrue(secondSession1.getCreationTime() != thirdSession1.getCreationTime());
-        Assert.assertTrue(secondSession2.getCreationTime() != thirdSession2.getCreationTime());
     }
 
     @Test
@@ -255,20 +252,18 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
     @Test
     public void testSessionSizeJsse() throws Exception {
         final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
-        /*for (String provider : providers) {
+        for (String provider : providers) {
             testSessionSize(provider, "openssl." + provider);
-        }*/
-        testSessionSize("openssl.TLSv1.2", "openssl.TLSv1.2");
-        //testSessionSizeTLS13("TLSv1.3", "openssl.TLSv1.3");
+        }
+        testSessionSizeTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
     @Test
     public void testSessionSizeOpenSsl() throws Exception {
-        /*final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2"};
+        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2"};
         for (String provider : providers) {
             testSessionSize(provider, provider);
-        }*/
-        //testSessionSize("TLSv1.2", "TLSv1.2");
+        }
         testSessionSizeTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -289,7 +284,6 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
             final SSLSessionContext clientSession = clientContext.getClientSessionContext();
 
             byte[] host1SessionId = connectAndWrite(clientContext, port1);
-            Thread.sleep(1000);
             byte[] host2SessionId = connectAndWrite(clientContext, port2);
 
             // No cache limit was set, id's should be identical
@@ -301,26 +295,25 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
             // The second session id should be the one kept as it was the last one used
             Assert.assertArrayEquals(host2SessionId, connectAndWrite(clientContext, port2));
             // Connect again to the first host, this should not match the initial session id for the first host
-            //Thread.sleep(2000);
             byte[] nextId = connectAndWrite(clientContext, port1);
             Assert.assertFalse(Arrays.equals(host1SessionId, nextId));
             // Once more connect to the first host and this should match the previous session id
-           // Assert.assertArrayEquals(nextId, connectAndWrite(clientContext, port1));
+            Assert.assertArrayEquals(nextId, connectAndWrite(clientContext, port1));
             // Connect to the second host which should be purged at this point
-           // Assert.assertFalse(Arrays.equals(nextId, connectAndWrite(clientContext, port2)));
+            Assert.assertFalse(Arrays.equals(nextId, connectAndWrite(clientContext, port2)));
 
             // Reset the cache limit and ensure both sessions are cached
-          //  clientSession.setSessionCacheSize(0);
-         //   host1SessionId = connectAndWrite(clientContext, port1);
-         //   host2SessionId = connectAndWrite(clientContext, port2);
+            clientSession.setSessionCacheSize(0);
+            host1SessionId = connectAndWrite(clientContext, port1);
+            host2SessionId = connectAndWrite(clientContext, port2);
 
             // No cache limit was set, id's should be identical
-         //   Assert.assertArrayEquals(host1SessionId, connectAndWrite(clientContext, port1));
-         //   Assert.assertArrayEquals(host2SessionId, connectAndWrite(clientContext, port2));
-          //  serverSocket1.close();
-            //serverSocket2.close();
-            //acceptThread1.join();
-            //acceptThread2.join();
+            Assert.assertArrayEquals(host1SessionId, connectAndWrite(clientContext, port1));
+            Assert.assertArrayEquals(host2SessionId, connectAndWrite(clientContext, port2));
+            serverSocket1.close();
+            serverSocket2.close();
+            acceptThread1.join();
+            acceptThread2.join();
         }
     }
 
@@ -410,17 +403,17 @@ public class ClientSessionTest extends AbstractOpenSSLTest {
      *
      * @throws Exception
      */
-    //@Test
+    @Test
     public void testClientSessionInvalidationMultiThreadAccessJsse() throws Exception {
-        final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2" };
+        final String[] providers = new String[] { "TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3" };
         for (String provider : providers) {
             testClientSessionInvalidationMultiThreadAccess(provider, "openssl." + provider);
         }
     }
 
-    //@Test
+    @Test
     public void testClientSessionInvalidationMultiThreadAccessOpenSsl() throws Exception {
-        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2"};
+        final String[] providers = new String[] { "openssl.TLSv1", "openssl.TLSv1.1", "openssl.TLSv1.2", "openssl.TLSv1.3" };
         for (String provider : providers) {
             testClientSessionInvalidationMultiThreadAccess(provider, provider);
         }
