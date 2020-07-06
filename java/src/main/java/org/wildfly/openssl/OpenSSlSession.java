@@ -301,8 +301,6 @@ class OpenSSlSession implements SSLSession {
     }
 
     void initialised(long pointer, long ssl, byte[] sessionId) {
-        // FJ REMOVE
-        System.out.println("INIT SESSION PTR " + pointer);
         this.sessionPointer = pointer;
         this.sessionId = sessionId;
         initCreationTime(ssl);
@@ -310,20 +308,15 @@ class OpenSSlSession implements SSLSession {
         initCipherSuite(ssl);
         initProtocol(ssl);
         initReused(ssl);
-       // this.ssl = ssl;
     }
 
     void initialised(long ssl) {
-        //this.sessionPointer = SSL.getInstance().get0Session(ssl);
-        // FJ REMOVE
-        //System.out.println("INIT SSL SESSION PTR " +  this.sessionPointer);
         initCreationTime(ssl);
         initSessionId(ssl);
         initPeerCertChain(ssl);
         initCipherSuite(ssl);
         initProtocol(ssl);
         initReused(ssl);
-        //this.ssl = ssl;
     }
 
     private void initSessionId(long ssl) {
@@ -343,9 +336,7 @@ class OpenSSlSession implements SSLSession {
 
     private void initCreationTime(long ssl) {
         // We need to multiply by 1000 as openssl uses seconds and we need milli-seconds.
-        // FJ REMOVE
         creationTime = SSL.getInstance().getTime(ssl) * 1000L;
-        System.out.println("Using SSL " + ssl + " creation time " + creationTime);
     }
 
     private void initReused(long ssl) {

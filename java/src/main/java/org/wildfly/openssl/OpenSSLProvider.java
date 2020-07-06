@@ -17,6 +17,8 @@
 
 package org.wildfly.openssl;
 
+import static org.wildfly.openssl.OpenSSLEngine.isTLS13Supported;
+
 import java.security.Provider;
 import java.security.Security;
 
@@ -40,7 +42,9 @@ public final class OpenSSLProvider extends Provider {
         put("SSLContext.TLSv1", OpenSSLContextSPI.class.getName() + "$" + OpenSSLContextSPI.OpenSSLTLS_1_0_ContextSpi.class.getSimpleName());
         put("SSLContext.TLSv1.1", OpenSSLContextSPI.class.getName() + "$" + OpenSSLContextSPI.OpenSSLTLS_1_1_ContextSpi.class.getSimpleName());
         put("SSLContext.TLSv1.2", OpenSSLContextSPI.class.getName() + "$" + OpenSSLContextSPI.OpenSSLTLS_1_2_ContextSpi.class.getSimpleName());
-        put("SSLContext.TLSv1.3", OpenSSLContextSPI.class.getName() + "$" + OpenSSLContextSPI.OpenSSLTLS_1_3_ContextSpi.class.getSimpleName());
+        if (isTLS13Supported()) {
+            put("SSLContext.TLSv1.3", OpenSSLContextSPI.class.getName() + "$" + OpenSSLContextSPI.OpenSSLTLS_1_3_ContextSpi.class.getSimpleName());
+        }
     }
 
     public static synchronized void register() {
