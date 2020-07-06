@@ -52,6 +52,11 @@ public class ClientSessionInteropTest extends ClientSessionTestBase {
         for (String provider : providers) {
             testSessionInvalidation(provider, "openssl." + provider);
         }
+    }
+
+    @Test
+    public void testSessionInvalidationJsseTLS13() throws Exception {
+        Assume.assumeTrue(isTls13Supported());
         testSessionInvalidationTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -61,6 +66,11 @@ public class ClientSessionInteropTest extends ClientSessionTestBase {
         for (String provider : providers) {
             testSessionSize(provider, "openssl." + provider);
         }
+    }
+
+    @Test
+    public void testSessionSizeJsseTLS13() throws Exception {
+        Assume.assumeTrue(isTls13Supported());
         testSessionSizeTLS13("TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -72,10 +82,12 @@ public class ClientSessionInteropTest extends ClientSessionTestBase {
      */
     @Test
     public void testClientSessionInvalidationMultiThreadAccessJsse() throws Exception {
-        final String[] providers = new String[] { "TLSv1.2", "TLSv1.3" };
-        for (String provider : providers) {
-            testClientSessionInvalidationMultiThreadAccess(provider, "openssl." + provider);
-        }
+        testClientSessionInvalidationMultiThreadAccess("TLSv1.2", "openssl." + "TLSv1.2");
+    }
+
+    @Test
+    public void testClientSessionInvalidationMultiThreadAccessJsseTLS13() throws Exception {
+        testClientSessionInvalidationMultiThreadAccess("TLSv1.3" , "openssl.TLSv1.3");
     }
 
 }

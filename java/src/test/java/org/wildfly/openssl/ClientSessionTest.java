@@ -19,6 +19,7 @@
 
 package org.wildfly.openssl;
 
+import org.junit.Assume;
 import org.junit.Test;
 
 /**
@@ -41,6 +42,7 @@ public class ClientSessionTest extends ClientSessionTestBase {
 
     @Test
     public void testSessionTimeoutOpenSslTLS13() throws Exception {
+        Assume.assumeTrue(isTls13Supported());
         testSessionTimeoutTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -50,6 +52,11 @@ public class ClientSessionTest extends ClientSessionTestBase {
         for (String provider : providers) {
             testSessionInvalidation(provider, provider);
         }
+    }
+
+    @Test
+    public void testSessionInvalidationOpenSslTLS13() throws Exception {
+        Assume.assumeTrue(isTls13Supported());
         testSessionInvalidationTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
@@ -59,15 +66,22 @@ public class ClientSessionTest extends ClientSessionTestBase {
         for (String provider : providers) {
             testSessionSize(provider, provider);
         }
+    }
+
+    @Test
+    public void testSessionSizeOpenSslTLS13() throws Exception {
+        Assume.assumeTrue(isTls13Supported());
         testSessionSizeTLS13("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
     @Test
     public void testClientSessionInvalidationMultiThreadAccessOpenSsl() throws Exception {
-        final String[] providers = new String[] { "openssl.TLSv1.2", "openssl.TLSv1.3" };
-        for (String provider : providers) {
-            testClientSessionInvalidationMultiThreadAccess(provider, provider);
-        }
+        testClientSessionInvalidationMultiThreadAccess("openssl.TLSv1.2", "openssl.TLSv1.2");
+    }
+
+    @Test
+    public void testClientSessionInvalidationMultiThreadAccessOpenSslTLS13() throws Exception {
+        testClientSessionInvalidationMultiThreadAccess("openssl.TLSv1.3", "openssl.TLSv1.3");
     }
 
 }
