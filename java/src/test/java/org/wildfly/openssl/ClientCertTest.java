@@ -48,6 +48,7 @@ public class ClientCertTest extends AbstractOpenSSLTest {
             })));
             acceptThread.start();
             try (SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket()) {
+                socket.setReuseAddress(true);
                 socket.connect(SSLTestUtils.createSocketAddress());
                 socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
                 byte[] data = new byte[100];

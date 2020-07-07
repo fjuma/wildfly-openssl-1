@@ -68,6 +68,7 @@ public class BasicOpenSSLSocketTest extends AbstractOpenSSLTest {
             acceptThread.start();
             final SSLContext sslContext = SSLTestUtils.createClientSSLContext("openssl." + protocol);
             try (final SSLSocket socket = (SSLSocket) sslContext.getSocketFactory().createSocket()) {
+                socket.setReuseAddress(true);
                 socket.connect(SSLTestUtils.createSocketAddress());
                 socket.getOutputStream().write("hello world".getBytes(StandardCharsets.US_ASCII));
                 socket.getOutputStream().flush();
@@ -121,6 +122,7 @@ public class BasicOpenSSLSocketTest extends AbstractOpenSSLTest {
             final SSLContext sslContext = SSLTestUtils.createClientSSLContext("openssl." + protocol);
             InetSocketAddress socketAddress = (InetSocketAddress) SSLTestUtils.createSocketAddress();
             try (final SSLSocket socket = (SSLSocket) sslContext.getSocketFactory().createSocket(socketAddress.getAddress(), socketAddress.getPort())) {
+                socket.setReuseAddress(true);
                 socket.getOutputStream().write("hello world".getBytes(StandardCharsets.US_ASCII));
                 socket.getOutputStream().flush();
                 byte[] data = new byte[100];

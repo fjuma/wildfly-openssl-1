@@ -152,6 +152,7 @@ public class ClientSessionTestBase extends AbstractOpenSSLTest {
             final FutureSessionId future = new FutureSessionId();
             SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
             try (SSLSocket socket = (SSLSocket) clientContext.getSocketFactory().createSocket()) {
+                socket.setReuseAddress(true);
                 socket.connect(new InetSocketAddress(SSLTestUtils.HOST, port));
                 socket.addHandshakeCompletedListener(new FutureHandshakeCompletedListener(future));
                 socket.getOutputStream().write(HELLO_WORLD);
@@ -364,6 +365,7 @@ public class ClientSessionTestBase extends AbstractOpenSSLTest {
             // Create a connection to get a session ID, all other session id's should match
             SSLContext clientContext = SSLTestUtils.createClientSSLContext(provider);
             try (SSLSocket socket = (SSLSocket) clientContext.getSocketFactory().createSocket()) {
+                socket.setReuseAddress(true);
                 socket.connect(SSLTestUtils.createSocketAddress());
                 socket.startHandshake();
                 final byte[] id = socket.getSession().getId();
@@ -374,6 +376,7 @@ public class ClientSessionTestBase extends AbstractOpenSSLTest {
 
             for (int i = 0; i < iterations; i++) {
                 final SSLSocket socket = (SSLSocket) clientContext.getSocketFactory().createSocket();
+                socket.setReuseAddress(true);
                 socket.connect(SSLTestUtils.createSocketAddress());
                 socket.addHandshakeCompletedListener(new AssertingHandshakeCompletedListener(latch, sessionID, getExpectedProtocolFromProvider(provider)));
                 socket.startHandshake();
@@ -398,6 +401,7 @@ public class ClientSessionTestBase extends AbstractOpenSSLTest {
     private byte[] connectAndWrite(final SSLContext context, final int port) throws IOException, ExecutionException, InterruptedException {
         final FutureSessionId future = new FutureSessionId();
         try (SSLSocket socket = (SSLSocket) context.getSocketFactory().createSocket()) {
+            socket.setReuseAddress(true);
             socket.connect(new InetSocketAddress(SSLTestUtils.HOST, port));
             socket.addHandshakeCompletedListener(new FutureHandshakeCompletedListener(future));
             socket.getOutputStream().write(HELLO_WORLD);
@@ -503,6 +507,7 @@ public class ClientSessionTestBase extends AbstractOpenSSLTest {
         public Void call() {
             // create a socket, connect, write some data, invalidate the session
             try (SSLSocket socket = (SSLSocket) this.sslClientContext.getSocketFactory().createSocket()) {
+                socket.setReuseAddress(true);
                 socket.connect(new InetSocketAddress(this.host, this.port));
                 socket.getOutputStream().write(HELLO_WORLD);
                 socket.getOutputStream().flush();
@@ -592,6 +597,7 @@ public class ClientSessionTestBase extends AbstractOpenSSLTest {
 
         try {
             SSLSocket socket = (SSLSocket) sslContext.getSocketFactory().createSocket();
+            socket.setReuseAddress(true);
             socket.connect(new InetSocketAddress(SSLTestUtils.HOST, port));
             PrintWriter out = new PrintWriter(
                     new OutputStreamWriter(socket.getOutputStream()));

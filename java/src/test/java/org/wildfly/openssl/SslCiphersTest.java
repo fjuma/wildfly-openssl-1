@@ -46,6 +46,7 @@ public class SslCiphersTest extends AbstractOpenSSLTest {
     public void testCipherSuiteConverter() throws IOException {
 
         final SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+        socket.setReuseAddress(true);
         for (String cipher : socket.getSupportedCipherSuites()) {
             if (cipher.contains("EMPTY")) {
                 continue;
@@ -91,6 +92,7 @@ public class SslCiphersTest extends AbstractOpenSSLTest {
             acceptThread.start();
 
             final SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+            socket.setReuseAddress(true);
             socket.setEnabledCipherSuites(new String[]{suite});
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write("hello world".getBytes(StandardCharsets.US_ASCII));
@@ -151,6 +153,7 @@ public class SslCiphersTest extends AbstractOpenSSLTest {
 
             final SSLContext clientContext = SSLTestUtils.createClientSSLContext("openssl.TLSv1.3");
             final SSLSocket socket = (SSLSocket) clientContext.getSocketFactory().createSocket();
+            socket.setReuseAddress(true);
             socket.setEnabledCipherSuites(new String[]{suite});
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write("hello world".getBytes(StandardCharsets.US_ASCII));

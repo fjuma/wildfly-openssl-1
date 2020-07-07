@@ -90,6 +90,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             Thread acceptThread = new Thread(new EchoRunnable(serverSocket, sslContext, sessionID));
             acceptThread.start();
             final SSLSocket socket = (SSLSocket) SSLTestUtils.createClientSSLContext(clientProvider).getSocketFactory().createSocket();
+            socket.setReuseAddress(true);
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
             byte[] data = new byte[100];
@@ -124,6 +125,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             Thread acceptThread = new Thread(echo);
             acceptThread.start();
             final SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+            socket.setReuseAddress(true);
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
             byte[] data = new byte[100];
@@ -180,6 +182,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             Thread acceptThread = new Thread(echo);
             acceptThread.start();
             final SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+            socket.setReuseAddress(true);
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
             byte[] data = new byte[100];
@@ -220,6 +223,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             Thread acceptThread = new Thread(echo);
             acceptThread.start();
             SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+            socket.setReuseAddress(true);
             socket.setEnabledProtocols(new String[] { "TLSv1" }); // from list of enabled protocols on the server side
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
@@ -234,6 +238,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             socket.close();
 
             socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+            socket.setReuseAddress(true);
             socket.setEnabledProtocols(new String[] { "TLSv1.1" }); // from list of enabled protocols on the server side
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
@@ -274,6 +279,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             acceptThread.start();
 
             SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+            socket.setReuseAddress(true);
             socket.setEnabledProtocols(new String[] { "TLSv1.1" });
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
@@ -316,6 +322,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             SSLSocket socket = null;
             try {
                 socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+                socket.setReuseAddress(true);
                 socket.setEnabledProtocols(new String[]{"SSLv3"});
                 socket.connect(SSLTestUtils.createSocketAddress());
                 socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
@@ -328,6 +335,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             }
             try {
                 socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+                socket.setReuseAddress(true);
                 socket.setEnabledProtocols(new String[]{"TLSv1"});
                 socket.connect(SSLTestUtils.createSocketAddress());
                 socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
@@ -341,6 +349,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             try {
                 if (getJavaSpecVersion() >= 11) {
                     socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+                    socket.setReuseAddress(true);
                     socket.setEnabledProtocols(new String[]{"TLSv1.3"});
                     socket.connect(SSLTestUtils.createSocketAddress());
                     socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
@@ -367,6 +376,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             Thread acceptThread = new Thread(new EchoRunnable(serverSocket, sslContext, sessionID));
             acceptThread.start();
             final SSLSocket socket = (SSLSocket) SSLTestUtils.createSSLContext("openssl.TLSv1").getSocketFactory().createSocket();
+            socket.setReuseAddress(true);
             socket.setSSLParameters(socket.getSSLParameters());
             socket.connect(SSLTestUtils.createSocketAddress());
             try {
@@ -413,6 +423,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             Thread acceptThread = new Thread(target);
             acceptThread.start();
             final SSLSocket socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
+            socket.setReuseAddress(true);
             socket.connect(SSLTestUtils.createSocketAddress());
             String message = generateMessage(1000);
             socket.getOutputStream().write(message.getBytes(StandardCharsets.US_ASCII));
@@ -469,6 +480,7 @@ public class BasicOpenSSLEngineTest extends AbstractOpenSSLTest  {
             try {
                 SSLContext clientContext = SSLTestUtils.createClientSSLContext(clientProvider);
                 SSLSocket sslSocket = (SSLSocket) clientContext.getSocketFactory().createSocket(HOST, PORT);
+                sslSocket.setReuseAddress(true);
                 sslSocket.getSession();
                 return sslSocket;
             } catch (Exception e) {

@@ -63,6 +63,7 @@ public class ALPNTest extends AbstractOpenSSLTest {
 
             final SSLContext clientSslContext = SSLTestUtils.createClientSSLContext("openssl." + protocol);
             final OpenSSLSocket socket = (OpenSSLSocket) clientSslContext.getSocketFactory().createSocket();
+            socket.setReuseAddress(true);
             socket.setApplicationProtocols("h2/13", "h2", "http");
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
@@ -108,6 +109,7 @@ public class ALPNTest extends AbstractOpenSSLTest {
             })));
             acceptThread.start();
             final OpenSSLSocket socket = (OpenSSLSocket) clientSslContext.getSocketFactory().createSocket();
+            socket.setReuseAddress(true);
             socket.connect(SSLTestUtils.createSocketAddress());
             socket.getOutputStream().write(MESSAGE.getBytes(StandardCharsets.US_ASCII));
             byte[] data = new byte[100];
