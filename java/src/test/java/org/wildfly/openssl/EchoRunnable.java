@@ -179,15 +179,15 @@ class EchoRunnable implements Runnable {
                             //ignore
                         }
                         e.printStackTrace();
-                        //throw new RuntimeException(e);
+                        throw new RuntimeException(e);
                     }
 
                 });
                 t.start();
             }
         } catch (Exception e) {
-            //e.printStackTrace();
-            //throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
