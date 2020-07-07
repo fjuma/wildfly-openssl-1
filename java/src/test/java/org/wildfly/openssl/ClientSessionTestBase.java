@@ -386,6 +386,7 @@ public class ClientSessionTestBase extends AbstractOpenSSLTest {
                 Assert.fail("Failed to complete handshakes");
             }
             serverSocket.close();
+            echo.stop();
             acceptThread.join();
         } finally {
             for (SSLSocket socket : toClose) {

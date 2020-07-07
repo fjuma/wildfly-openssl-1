@@ -150,6 +150,7 @@ class EchoRunnable implements Runnable {
                                 out.clear();
                                 if(close) {
                                     engine.closeOutbound();
+                                    engine.closeInbound();
                                     s.close();
                                 }
                             }
