@@ -107,7 +107,7 @@ public final class OpenSSLClientSessionContext extends OpenSSLSessionContext {
         return null;
     }
 
-    synchronized void storeClientSideSession(ClientSessionKey key, long ssl, long sessionPointer, byte[] sessionId) {
+    void storeClientSideSession(ClientSessionKey key, long ssl, long sessionPointer, byte[] sessionId) {
         if (sessionId != null) {
             if (key != null) {
                 // set with the session pointer from the found session

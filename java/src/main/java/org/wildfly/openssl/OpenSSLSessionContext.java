@@ -101,7 +101,7 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
         session.invalidate();
     }
 
-    synchronized void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
+    void sessionCreatedCallback(long ssl, long session, byte[] sessionId) {
         // This method gets invoked every time a new session is established. Note that prior to
         // TLS 1.3, sessions are established as part of the handshake but from TLS 1.3 onward,
         // sessions are not established until after handshake has completed
@@ -112,7 +112,7 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
         }
     }
 
-    synchronized void sessionRemovedCallback(byte[] sessionId) {
+    void sessionRemovedCallback(byte[] sessionId) {
         sessions.remove(new Key(sessionId));
     }
 
