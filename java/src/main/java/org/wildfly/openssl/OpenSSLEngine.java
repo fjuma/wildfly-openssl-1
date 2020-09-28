@@ -1223,13 +1223,17 @@ public final class OpenSSLEngine extends SSLEngine {
     /**
      * Converts the specified OpenSSL cipher suite to the Java cipher suite.
      */
-    static String toJavaCipherSuite(String openSslCipherSuite, long ssl) {
+    static String toJavaCipherSuite(String openSslCipherSuite, String version) {
         if (openSslCipherSuite == null) {
             return null;
         }
 
-        String prefix = toJavaCipherSuitePrefix(SSL.getInstance().getVersion(ssl));
+        String prefix = toJavaCipherSuitePrefix(version);
         return CipherSuiteConverter.toJava(openSslCipherSuite, prefix);
+    }
+
+    static String toJavaCipherSuite(String openSslCipherSuite, long ssl) {
+        return toJavaCipherSuite(openSslCipherSuite, SSL.getInstance().getVersion(ssl));
     }
 
     /**

@@ -298,8 +298,8 @@ class OpenSSlSession implements SSLSession {
         this.sessionId = sessionId;
         initCreationTime(ssl);
         initPeerCertChain(ssl);
-        initCipherSuite(ssl);
         initProtocol(ssl);
+        initCipherSuite(ssl);
         initReused(ssl);
     }
 
@@ -307,8 +307,8 @@ class OpenSSlSession implements SSLSession {
         initCreationTime(ssl);
         initSessionId(ssl);
         initPeerCertChain(ssl);
-        initCipherSuite(ssl);
         initProtocol(ssl);
+        initCipherSuite(ssl);
         initReused(ssl);
     }
 
@@ -321,7 +321,7 @@ class OpenSSlSession implements SSLSession {
     }
 
     private void initCipherSuite(long ssl) {
-        String c = OpenSSLEngine.toJavaCipherSuite(SSL.getInstance().getCipherForSSL(ssl), ssl);
+        String c = OpenSSLEngine.toJavaCipherSuite(SSL.getInstance().getCipherForSSL(ssl), protocol);
         if (c != null) {
             cipherSuite = c;
         }
