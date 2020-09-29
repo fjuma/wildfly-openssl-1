@@ -105,8 +105,11 @@ abstract class OpenSSLSessionContext implements SSLSessionContext {
         // This method gets invoked every time a new session is established. Note that prior to
         // TLS 1.3, sessions are established as part of the handshake but from TLS 1.3 onward,
         // sessions are not established until after handshake has completed
-        final OpenSSlSession openSSlSession = new OpenSSlSession(true, this);
-        openSSlSession.initialised(session, ssl, sessionId);
+        final OpenSSlSession openSSlSession;
+        synchronized (this) {
+            openSSlSession = new OpenSSlSession(true, this);
+            openSSlSession.initialised(session, ssl, sessionId);
+        }
         if (sessionId != null) {
             sessions.put(new Key(sessionId), openSSlSession);
         }
