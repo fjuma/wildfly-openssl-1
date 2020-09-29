@@ -77,7 +77,7 @@ class OpenSSlSession implements SSLSession {
 
     @Override
     public long getCreationTime() {
-        return creationTime;
+        return creationTime  * 1000L;
     }
 
     @Override
@@ -329,7 +329,7 @@ class OpenSSlSession implements SSLSession {
 
     private void initCreationTime(long ssl) {
         // We need to multiply by 1000 as openssl uses seconds and we need milli-seconds.
-        creationTime = SSL.getInstance().getTime(ssl) * 1000L;
+        creationTime = SSL.getInstance().getTime(ssl);
     }
 
     private void initReused(long ssl) {
