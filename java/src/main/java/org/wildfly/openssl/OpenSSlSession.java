@@ -321,7 +321,7 @@ class OpenSSlSession implements SSLSession {
     }
 
     private void initCipherSuite(long ssl) {
-        String c = OpenSSLEngine.toJavaCipherSuite(SSL.getInstance().getCipherForSSL(ssl), ssl, protocol);
+        String c = OpenSSLEngine.toJavaCipherSuite(SSL.getInstance().getCipherForSSL(ssl), protocol);
         if (c != null) {
             cipherSuite = c;
         }
